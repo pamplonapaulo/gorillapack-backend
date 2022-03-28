@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_order_expected_payments",
+  "info": {
+    "displayName": "expectedPayments",
+    "icon": "dollar-sign",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "monthsMultiplier": {
+      "type": "integer"
+    },
+    "valueInCentavos": {
+      "type": "biginteger",
+      "required": true
+    },
+    "payments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::payment.payment"
+    }
+  }
+}

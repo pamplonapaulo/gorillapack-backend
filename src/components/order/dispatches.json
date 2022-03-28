@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_order_dispatches",
+  "info": {
+    "displayName": "dispatches",
+    "icon": "check"
+  },
+  "options": {},
+  "attributes": {
+    "expected": {
+      "type": "integer",
+      "required": false
+    },
+    "accomplished": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_pack_benefits",
+  "info": {
+    "displayName": "Benefits",
+    "icon": "align-left"
+  },
+  "options": {},
+  "attributes": {
+    "benefits": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::benefit.benefit"
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "kind": "collectionType",
+  "collectionName": "orders",
+  "info": {
+    "singularName": "order",
+    "pluralName": "orders",
+    "displayName": "Order",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "period": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::period.period"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "snack": {
+      "type": "component",
+      "repeatable": true,
+      "component": "pack.item",
+      "required": true
+    },
+    "pack": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::pack.pack"
+    },
+    "deliveries": {
+      "displayName": "Delivery",
+      "type": "component",
+      "repeatable": false,
+      "component": "order.delivery",
+      "required": true
+    },
+    "address": {
+      "displayName": "address",
+      "type": "component",
+      "repeatable": false,
+      "component": "order.address"
+    },
+    "coupon": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::coupon.coupon"
+    },
+    "expectedPayments": {
+      "displayName": "expectedPayments",
+      "type": "component",
+      "repeatable": false,
+      "component": "order.expected-payments"
+    },
+    "cancellations": {
+      "displayName": "cancellations",
+      "type": "component",
+      "repeatable": false,
+      "component": "order.cancellations"
+    },
+    "isConfirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "Title": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

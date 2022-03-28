@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_order_expected_dispatch_days",
+  "info": {
+    "displayName": "expectedDispatchDays",
+    "icon": "calendar-alt",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "isDispatched": {
+      "type": "boolean",
+      "default": false
+    },
+    "date": {
+      "type": "date"
+    }
+  }
+}

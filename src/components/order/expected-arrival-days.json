@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_order_expected_arrival_days",
+  "info": {
+    "displayName": "expectedArrivalDays",
+    "icon": "calendar-day",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "date": {
+      "type": "date"
+    },
+    "hasArrived": {
+      "type": "boolean"
+    }
+  }
+}
