@@ -7,14 +7,16 @@
     "develop": "strapi develop",
     "start": "strapi start",
     "build": "strapi build",
-    "strapi": "strapi"
+    "strapi": "strapi",
+    "postinstall": "patch-package",
+    "heroku-postbuild": "patch-package"
   },
   "devDependencies": {},
   "dependencies": {
     "@strapi/plugin-graphql": "4.0.4",
     "@strapi/plugin-i18n": "4.0.4",
     "@strapi/plugin-users-permissions": "4.0.4",
-    "@strapi/strapi": "4.0.4",
+    "@strapi/strapi": "https://github.com/pamplonapaulo/strapi.git",
     "pg": "^8.7.3",
     "pg-connection-string": "^2.5.0",
     "styled-components": "^5.3.5"
