@@ -103,44 +103,71 @@ module.exports = {
 
           let dispatches = [ Number(Day1), Number(Day2) ]
 
+          console.log('Dias do mês em que o Gorilla posta as ordens:')
+          console.log(dispatches)
+          console.log(' ')
+
+          console.log('Hoje é dia:')
+          console.log(today)
+          console.log(' ')
+
+          console.log('Tempo necessário entre a confirmação do pagamento e a postagem:')
+          console.log(SafetyTimeSpan + ' dias')
+          console.log(' ')
+
           for (let i=dispatches.length-1; i>=0; i--) {
 
             if (today + SafetyTimeSpan < dispatches[i]) {
-              dayOfMonth = dispatches[i]
+              console.log('Ordem será enviada ainda este mês.')
+              dayOfMonth = (dispatches[i] + 1)
             }
           }
 
           if (!dayOfMonth) {
+            console.log('Ordem NÃO será enviada este mês. Somente no próximo mês.')
             year = month === 11 ? year+1 : year
             month = month === 11 ? 0 : month+1
-            dayOfMonth = dispatches[0]
+            dayOfMonth = (dispatches[0] + 1)
           }
 
-          for (let i=0; i<orderMath.subscription.Multiplier; i++) {
+          console.log('Definido que os dias de envio serão sempre: dia ', dayOfMonth + ' de cada mês.')
+          console.log(' ')
+
+          for (let i=1; i<=orderMath.subscription.Multiplier; i++) {
+            console.log('Total de meses contratados na assinatura: ', orderMath.subscription.Multiplier)
+            console.log(' ')
+
             expectedDispatchDays.push({
               isDispatched: false,
               date: formatDate(year, (month + i), dayOfMonth)
             })
 
-            let arrival = new Date(year, month + i, dayOfMonth + SafetyTimeSpan);
+            let arrival = new Date(year, month + i, dayOfMonth + data.deliveries.expectedTravelingDays);
 
-            // Check if arrival would be on Sunday, then fix it to Monday
+            // Check if arrival would be on Sunday, then fix it to Monday'
             if (arrival.getDay() === 0) {
-              arrival = new Date(year, month + i, dayOfMonth + SafetyTimeSpan + 1);
+              console.log('arrival on Sunday: so 1 extra day on delivery')
+              arrival = new Date(year, month + i, dayOfMonth + data.deliveries.expectedTravelingDays + 1);
             }
 
             // Check if arrival would be on Saturday, then fix it to Monday
             if (arrival.getDay() === 6) {
-              arrival = new Date(year, month + i, dayOfMonth + SafetyTimeSpan + 2);
+              console.log('arrival on Saturday: so 2 extra days on delivery')
+              arrival = new Date(year, month + i, dayOfMonth + data.deliveries.expectedTravelingDays + 2);
             }
 
             const dateStr = arrival.getFullYear() + '-' + arrival.getMonth() + '-' + arrival.getDate()
+            console.log(' dateStr ', dateStr)
+            console.log(' ')
 
             expectedArrivalDays.push({
               hasArrived: false,
               date: new Date(dateStr).toISOString()
             })
           }
+          console.log('Dias de postagem: ', expectedDispatchDays)
+          console.log('Dias de recebimento: ', expectedArrivalDays)
+
           data.deliveries.expectedArrivalDays = expectedArrivalDays
           data.deliveries.expectedDispatchDays = expectedDispatchDays
 
