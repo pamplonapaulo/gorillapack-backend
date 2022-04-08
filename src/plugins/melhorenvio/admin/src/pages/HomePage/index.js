@@ -15,6 +15,7 @@ const HomePage = () => {
   const [credentials, setCredentials] = useState({})
 
   useEffect(async () => {
+    document.title = "Melhor Envio";
     const credents = await fetchCredentials();
     setCredentials(credents[0]);
   }, []);
@@ -56,15 +57,15 @@ const HomePage = () => {
                 <S.InnerContainer>
 
                   <S.TestList>
-                    <S.TestItem>Enviando request...</S.TestItem>
-                    <S.TestItem>Response recebido</S.TestItem>
-                    <S.TestItem>Response Status 200</S.TestItem>
-                    <S.TestItem>Cotação bem sucedida</S.TestItem>
-                    <S.TestItem>Valor da melhor cotação: </S.TestItem>
-                    <S.TestItem>Normas de empacotamento: </S.TestItem>
-                    <S.TestItem>Tempo estimado de viagem:</S.TestItem>
-                    <S.TestItem>Compania:</S.TestItem>
-                    <S.TestItem>Teste encerrado: {showTime(new Date())}</S.TestItem>
+                    <S.TestItem hasPassed={true}>Enviando request...</S.TestItem>
+                    <S.TestItem hasPassed={undefined}>Response recebido</S.TestItem>
+                    <S.TestItem hasPassed={true}>Response Status 200</S.TestItem>
+                    <S.TestItem hasPassed={true}>Cotação bem sucedida</S.TestItem>
+                    <S.TestItem hasPassed={false}>Valor da melhor cotação: </S.TestItem>
+                    <S.TestItem hasPassed={false}>Normas de empacotamento: </S.TestItem>
+                    <S.TestItem hasPassed={false}>Tempo estimado de viagem:</S.TestItem>
+                    <S.TestItem hasPassed={true}>Compania:</S.TestItem>
+                    <S.TestItem hasPassed={false}>Teste encerrado: {showTime(new Date())}</S.TestItem>
                   </S.TestList>
                 </S.InnerContainer>
               </S.Column>
@@ -81,14 +82,14 @@ const HomePage = () => {
           <S.Column>
             <S.Subtitle>Access Token:</S.Subtitle>
             <S.InnerContainer>
-              <S.Subtitle>{credentials.access_token}</S.Subtitle>
+              <S.Token>{credentials.access_token}</S.Token>
             </S.InnerContainer>
           </S.Column>
 
           <S.Column>
             <S.Subtitle>Refresh Token:</S.Subtitle>
             <S.InnerContainer>
-              <S.Subtitle>{credentials.access_token}</S.Subtitle>
+              <S.Token>{credentials.access_token}</S.Token>
               {/* <S.Subtitle>{credentials.refresh_token}</S.Subtitle> */}
             </S.InnerContainer>
           </S.Column>

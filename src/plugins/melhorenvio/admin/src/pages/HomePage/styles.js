@@ -1,4 +1,40 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
+
+const spin = keyframes`
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(90deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  75% {
+    transform: rotate(270deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+`
+
+const swing = keyframes`
+  0% {
+    transform: translateX(0%);
+  }
+  25% {
+    transform: rotate(50%);
+  }
+  50% {
+    transform: rotate(0%);
+  }
+  75% {
+    transform: rotate(-50%);
+  }
+  100% {
+    transform: rotate(0%);
+  }
+`
 
 export const Title = styled.h1`
   margin: 56px;
@@ -30,14 +66,47 @@ export const InnerContainer = styled.div`
   }
 `
 
+export const Token = styled.h5`
+  color: #333740;
+  display: table-cell;
+  font-size: 0.75rem;
+  line-height: 1.43;
+  overflow: hidden;
+  vertical-align: middle;
+  word-break: break-all;
+`
+
 export const TestList = styled.ul`
   list-style: none;
 `
 
 export const TestItem = styled.li`
   color: red;
-  line-height: 1.43;
+  line-height: 2;
   font-size: 0.75rem;
+  color: ${(p) => (p.hasPassed ? 'green' : 'red')};
+
+  color: ${(p) =>
+    p.hasPassed
+      ? 'green'
+        : p.hasPassed === undefined
+        ? 'rgba(204, 204, 204, 0.6)'
+        : 'red'};
+
+  &:before {
+    animation: ${spin} 1s linear infinite;
+    animation-name: ${(p) => (p.hasPassed === undefined ? spin : 'none')};
+    color: inherit;
+    display: inline-block;
+    margin-right: 0.6rem;
+    margin-bottom: -1px;
+    content: '${(p) =>
+    p.hasPassed
+      ? '\\2713'
+        : p.hasPassed === undefined
+        ? '\\22EF'
+        : '\\00D7'}';
+  }
 `
 
 export const Anchor = styled.a`
@@ -61,8 +130,34 @@ export const Row = styled.div`
     margin-bottom: 0;
 
     ${InnerContainer} {
+      display: block;
+      overflow-y: scroll;
+      max-height: 100px;
+
       ${Subtitle} {
         font-size: 0.75rem;
+      }
+
+      &::-webkit-scrollbar {
+        width: 6px;
+        border: 2px solid transparent;
+      }
+
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none !important;
+        border: 2px solid transparent;
+       }
+
+      &::-webkit-scrollbar-thumb {
+        background-color: rgba(255,255,255,0.2) !important;
+        outline: none !important;
+        border-radius: 5px;
+        width: 3px !important;
+        margin: 2px;
+      }
+
+      &::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
       }
     }
   }
@@ -75,14 +170,6 @@ export const Column = styled.div`
   ${Anchor} {
     margin: unset;
   }
-
-  /* ${InnerRow} {
-    ${Column} {
-      background: red;
-      display: flex;
-      align-items: end;
-    }
-  } */
 `
 
 export const InnerRow = styled.div`
@@ -93,10 +180,6 @@ export const InnerRow = styled.div`
   ${Column}:nth-child(2) {
     display: flex;
     align-items: end;
-  }
-
-  &&:nth-child(1) ${Column}{
-    /* background: #ff00ff; */
   }
 `
 
@@ -138,9 +221,6 @@ export const Container = styled.section`
       max-width: 1550px;
     }
   }
-  &&:last-of-type {
-    margin-bottom: 0;
-  }
 `
 
 export const Wrap = styled.div`
@@ -159,16 +239,15 @@ export const Btn = styled.button`
   background: #7b79ff;
   border: 1px solid #7b79ff;
   border-radius: 4px;
+  color: #ffffff;
   cursor: pointer;
   display: flex;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.33;
   margin: 0;
   outline: none;
   padding: 8px 16px;
-
-  font-weight: 600;
-  color: #ffffff;
-  font-size: 0.75rem;
-  line-height: 1.33;
 
   @media only screen and (min-width: 1024px) {
 
