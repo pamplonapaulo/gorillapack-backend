@@ -32,7 +32,7 @@ export default {
       id: pluginId,
       initializer: Initializer,
       isReady: false,
-      name,
+      name
     });
   },
 
