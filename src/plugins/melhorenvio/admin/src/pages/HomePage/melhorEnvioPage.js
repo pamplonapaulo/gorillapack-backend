@@ -119,18 +119,23 @@ const HomePage = () => {
     }
 
     if (err === 'refresh_token') {
-      // let user know he must fill the form: click RECADASTRAR button
-      console.error('Melhor Envio Plugin is broken! You must manually register it again!')
-      // return someKindOfAlert():
-      // Alert message about the issue
-      // Then regressive counter
-      // And then instant redirect
+      setRefreshToken(false)
+      setResponse(false)
+      setCheapestCompany(false)
+      setBestPrice(false)
+      setPackingRules(false)
+      setDeliveryTime(false)
+      setFinished(true)
+
+      console.error('You must manually register the plugin again!')
+      // return someKindOfAlert('You must manually register the plugin. If your store doesn\'t request a single quotation for 30 days, you\'re going to have to register it again. The form on the next page takes 1 one to fill out. After filling the form and saving it, you\'ll be redirected back here. Then hold on for a few seconds watching the test that will run automatically, sharing the expected success results. Click in the button when you are ready.'):
     }
   }
 
   const handleSuccess = (res) => {
     setAccessTokenAcepted('válido')
     setResponse('recebida')
+    setCheapestCompany(sorted[0].company.name)
     const sorted = sortByLowestPrice(res.data)
     setBestPrice(sorted[0].currency + ' ' + sorted[0].price)
     setPackingRules(
@@ -139,7 +144,6 @@ const HomePage = () => {
       sorted[0].packages[0].dimensions.width + 'cm'
     )
     setDeliveryTime(sorted[0].delivery_time + ' dias')
-    setCheapestCompany(sorted[0].company.name)
     setFinished(true)
   }
 
