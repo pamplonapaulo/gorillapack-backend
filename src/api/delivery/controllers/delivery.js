@@ -78,16 +78,16 @@ module.exports = {
           },
         })
 
+        // Saved above, then start again bellow:
         return requestMelhorEnvio(
           undefined,
           'https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate',
+          sortByLowestPrice,
           JSON.stringify(data.products),
-          sortByLowestPrice
         )
       }
 
       const requestMelhorEnvio = async (grant_type, url, callBack, dataObj) => {
-        console.log('oioi')
         const options = {
           url,
           method: 'POST',
@@ -100,13 +100,11 @@ module.exports = {
             ...dataObj
           }
         };
-        console.log('heheheh')
         if (grant_type === undefined) {
           console.log('// credenciais aprovadas. cotar frete')
           options.headers.Authorization = 'Bearer ' + getCredentials(['access_token'])
         }
         console.log('grant_type: ', grant_type)
-        console.log('xxxxx')
         if (grant_type === 'refresh_token') {
           console.log('// access token expirado. usar refresh token')
           options.data.refresh_token = getCredentials(['refresh_token']),

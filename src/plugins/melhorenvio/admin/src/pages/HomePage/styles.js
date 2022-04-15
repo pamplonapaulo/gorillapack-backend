@@ -76,6 +76,10 @@ export const Token = styled.h5`
   word-break: break-all;
 `
 
+export const Span = styled.span`
+  float: right;
+`
+
 export const TestList = styled.ul`
   list-style: none;
 `
@@ -84,19 +88,18 @@ export const TestItem = styled.li`
   color: red;
   line-height: 2;
   font-size: 0.75rem;
-  color: ${(p) => (p.hasPassed ? 'green' : 'red')};
-
   color: ${(p) =>
     p.hasPassed
-      ? 'green'
+      ? '#39FF14'
         : p.hasPassed === undefined
         ? 'rgba(204, 204, 204, 0.6)'
-        : 'red'};
+        : '#ff1818'};
 
   &:before {
     animation: ${spin} 1s linear infinite;
     animation-name: ${(p) => (p.hasPassed === undefined ? spin : 'none')};
     color: inherit;
+    opacity: ${(p) => (p.skipped ? '0' : '1')};
     display: inline-block;
     margin-right: 0.6rem;
     margin-bottom: -1px;
@@ -115,6 +118,26 @@ export const Anchor = styled.a`
     width: fit-content;
 `
 
+export const Column = styled.div`
+  flex-direction: column;
+  width: calc(50% - calc(1.5rem/2));
+
+  ${Anchor} {
+    margin: unset;
+  }
+`
+
+export const InnerRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  ${Column}:nth-child(2) {
+    display: flex;
+    align-items: end;
+  }
+`
+
 export const Row = styled.div`
   display: flex;
   flex-direction: row;
@@ -124,6 +147,17 @@ export const Row = styled.div`
   &&:nth-of-type(1) {
     border-bottom: #2f2f3c solid 1px;
     padding-bottom: 1.5rem;
+
+    ${Column}:nth-child(1) {
+      width: fit-content;
+    }
+    ${Column}:nth-child(2) ${InnerRow} ${Column}{
+      width: 100%;
+
+      ${InnerContainer} {
+        width: 100%;
+      }
+    }
   }
 
   &&:last-of-type {
@@ -132,7 +166,9 @@ export const Row = styled.div`
     ${InnerContainer} {
       display: block;
       overflow-y: scroll;
-      max-height: 100px;
+      /* max-height: 100px; */
+      width: 100%;
+      height: 100px;
 
       ${Subtitle} {
         font-size: 0.75rem;
@@ -163,36 +199,12 @@ export const Row = styled.div`
   }
 `
 
-export const Column = styled.div`
-  flex-direction: column;
-  width: calc(50% - calc(1.5rem/2));
-
-  ${Anchor} {
-    margin: unset;
-  }
-`
-
-export const InnerRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-
-  ${Column}:nth-child(2) {
-    display: flex;
-    align-items: end;
-  }
-`
-
 export const Container = styled.section`
   background: #212134;
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
   margin: 56px;
-
-  &&:nth-of-type(1) {
-    margin-top: 0;
-  }
 
   ${Subtitle} {
     color: #a5a5ba;
@@ -201,7 +213,7 @@ export const Container = styled.section`
   &&:nth-of-type(1) {
     background: transparent;
     padding: 0 1.5rem 0 0;
-    margin: 1.5rem 1.5rem 0 37px;
+    margin: 0 1.5rem 0 37px;
   }
 
   &&:nth-of-type(2) {
