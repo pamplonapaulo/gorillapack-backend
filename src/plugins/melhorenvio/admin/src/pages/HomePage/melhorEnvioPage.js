@@ -7,7 +7,7 @@
 import React, { useEffect, useState, memo } from 'react';
 // import PropTypes from 'prop-types';
 import * as S from './styles';
-import { fetchCredentials, replaceTokens } from '../../utils/api';
+import { fetchCredentials, updateCredentials } from '../../utils/api';
 
 import Brand from '../../components/Brand';
 
@@ -16,9 +16,9 @@ import { sendRequest, sortByLowestPrice } from '../../utils/testMelhorEnvio';
 const HomePage = () => {
 
   const [credentials, setCredentials] = useState({})
-  const [code, setCode] = useState(undefined)
-  const [accessToken, setAccessToken] = useState(undefined)
-  const [refreshToken, setRefreshToken] = useState(undefined)
+  const [authorization_code, setAuthorizationCode] = useState(undefined)
+  const [access_token, setAccessToken] = useState(undefined)
+  const [refresh_token, setRefreshToken] = useState(undefined)
 
   const [request, setRequest] = useState(undefined)
   const [response, setResponse] = useState(undefined)
@@ -33,8 +33,15 @@ const HomePage = () => {
 
   const [reFetch, setReFetch] = useState(false)
 
-  useEffect(async () => {
+  useEffect(() => {
     document.title = "Melhor Envio";
+
+    const href = '/admin/plugins/melhorenvio?code=def502002835de5d8d0b1d5818c31f12bdf6a526966569f42dd46406afb96a8261d24a89ede1c12fe73fe7e714399092eea6e488566dad408eb622e00b64d98da62de1fc8ffd5e02089355db78b2d3a3e88b0e295bf46ecb83d949190f7a230b444b59006a23d2eed9cead21a6af0dda21c4cbaf56492a9524f50cdd4fb79256ed8024c9078264e9c5bbdfda44c8afa709575f3b6c2bb6bd0c06c5a251b801dbd7dc3e0b515db0f3f5fb32968df5630c296eed071eae9a09f198302124327fe533669bad1090a1d5d7be3af58d191beda5ca3d433799f4c1c9408ffb6a69fdf7127aabb01e67a136558868527534c20a5ccab63c44bb69b75de386d13ece1dccd7bc73e8b7a221c2fa9303e3c66b87b280a4c3cc73bdf144eb6d30a179918f9e253dda8d2c64524b13a943f801a3e328c10fbee9aaab7f7a4f1913bb8e90021ad5267b2de7f30dc54702da52b1dcf84dda398261cfe2a1ab2b5e44637c3538d8b330630b1d82dbc4068654262479643ec8a990ef3d024dad4f1a1da01a76a0aca353048d0e59c8525a1814e35ea6e481511f96989a41a1633aeda55347fc9312702aa43746796874a337479662d17f39d6dee414c82d1aa64c39e4';
+    //watchPathname(href)
+    watchPathname(window.location.href)
+  },[])
+
+  useEffect(async () => {
     const credents = await fetchCredentials();
     setCredentials(
       {
@@ -47,75 +54,92 @@ const HomePage = () => {
     setCredentials(
       {
         ...credentials,
-        code
+        authorization_code
       }
     );
-  }, [code]);
+  }, [authorization_code]);
 
   useEffect(() => {
     setCredentials(
       {
         ...credentials,
-        accessToken
+        access_token
       }
     );
-  }, [accessToken]);
+  }, [access_token]);
 
   useEffect(() => {
     setCredentials(
       {
         ...credentials,
-        refreshToken
+        refresh_token
       }
     );
-  }, [refreshToken]);
+  }, [refresh_token]);
 
-  // const handleBigTest = async () => {
-  //   const testar = {
-  //     access_token: 'PAULO',
-  //     refresh_token: 'RIO'
-  //   }
-  //   try {
-  //     const result = await replaceTokens(testar.access_token, testar.refresh_token);
-  //     console.log(result)
-  //     return setReFetch(!reFetch)
-  //   } catch(err) {
-  //     console.log(err)
-  //     throw new Error(err.message, { cause: err });
-  //   }
-  // }
+  const filterTypes = (arr) => {
+    if (arr.length === 2 && arr.filter(value => value === 'access_token')) return ['shipping_calculate']
+    if (arr.length === 1) return arr
+  }
 
-  const callRefreshToken = async () => {
+  const handleSave = async (obj) => {
+
+    console.log('handle save.......')
+    console.log(Object.getOwnPropertyNames(obj))
+    console.log(obj)
+
+    console.log('and next melhor envio:')
+    console.log(filterTypes(Object.getOwnPropertyNames(obj)))
+
     try {
-
-      const response = await sendRequest(credentials, 'refresh_token')
+      const response = await updateCredentials(obj);
       const result = await response.json()
+      console.log('updated credentials:')
+      console.log(result)
 
-      // https://docs.menv.io/#4e68946c-e4d5-4d2e-bddf-34e7d9c12fe3
-      // Será retornado então um array contendo o tipo do token (Bearer), o tempo de expiração do novo token, o novo token de acesso e o novo refresh token (para futura atualização do token de acesso).
+      setReFetch(!reFetch)
+      return callMelhorEnvio(
+        {
+          ...credentials,
+          ...obj
+        },
+        filterTypes(Object.getOwnPropertyNames(obj))
+      )
+    } catch(err) {
+      console.error(err)
+      handleErrors('update_credentials')
+      throw new Error(err.message, { cause: err });
+    }
+  }
 
-      // if status 200, then update all credential States
-      const saved = await replaceTokens(result);
-      if (saved) {
-        setAccessToken(result.access_token)
-        setRefreshToken(result.refresh_token)
-      }
-      // Eu não me lembro exatamente como esse objeto é retornado
-      // Só poderemos testar quando tivermos novas credenciais válidas, após help do Rodrigo no formulário
-      // Quando testarmos, será salvo direto em utils/api.js, pelo comando sendRequest(credentials, 'refresh_token') aqui acima.
+  const watchPathname = (path) => {
+    const regex = /(\?|\&)([^=]+)\=([^&]+)/g;
+    const params = [...path.matchAll(regex)];
 
-      // Tudo renovado. Agora é só reiniciar os testes:
-      return handleTest()
-    } catch (err) {
-      console.error(err.message)
-      return handleErrors('refresh_token')
+    if (params.length > 0 && params[0][2] === 'code') {
+      return handleSave({ authorization_code: params[0][3] })
+    }
+  }
+
+  const callMelhorEnvio = async (creds, type) => {
+    setRequest(type[0])
+
+    try {
+      const response = await sendRequest(creds, type[0])
+      const result = await response.json()
+      console.log(result)
+      return type[0] === 'shipping_calculate' ? handleSuccess(result) : handleSave(result)
+    } catch(err) {
+      console.error(err)
+      handleErrors(type[0])
+      throw new Error(err.message, { cause: err });
     }
   }
 
   const handleErrors = (err) => {
     if (err === 'shipping_calculate') {
       setAccessTokenAcepted(false)
-      return callRefreshToken()
+      return callMelhorEnvio(credentials, ['refresh_token'])
     }
 
     if (err === 'refresh_token') {
@@ -126,9 +150,17 @@ const HomePage = () => {
       setPackingRules(false)
       setDeliveryTime(false)
       setFinished(true)
+      console.error('You must manually register the plugin again. Click on the button to open Melhor Envio\'s from.')
+    }
 
-      console.error('You must manually register the plugin again!')
-      // return someKindOfAlert('You must manually register the plugin. If your store doesn\'t request a single quotation for 30 days, you\'re going to have to register it again. The form on the next page takes 1 one to fill out. After filling the form and saving it, you\'ll be redirected back here. Then hold on for a few seconds watching the test that will run automatically, sharing the expected success results. Click in the button when you are ready.'):
+    if (err === 'authorization_code') {
+      setCodeAcepted(false)
+      console.error('You must call the suppor!')
+      // return callFatalError()
+    }
+
+    if (err === 'update_credentials') {
+      console.error('Credentials not saved on Strapi')
     }
   }
 
@@ -145,18 +177,6 @@ const HomePage = () => {
     )
     setDeliveryTime(sorted[0].delivery_time + ' dias')
     setFinished(true)
-  }
-
-  const handleTest = async () => {
-    setRequest(' enviada')
-    try {
-      const response = await sendRequest(credentials, 'shipping_calculate')
-      const result = await response.json()
-      return handleSuccess(result)
-    } catch (err) {
-      console.error(err.message)
-      return handleErrors('shipping_calculate')
-    }
   }
 
   const convertDate = (date) => new Date(date).toLocaleDateString('pt-BR');
@@ -202,10 +222,10 @@ const HomePage = () => {
                     <S.TestItem hasPassed={accessTokenAcepted}>
                       Access Token:<S.Span>{!!accessTokenAcepted ? accessTokenAcepted : ''}</S.Span>
                     </S.TestItem>
-                    <S.TestItem hasPassed={refreshToken} skipped={accessTokenAcepted}>
+                    <S.TestItem hasPassed={refresh_token} skipped={accessTokenAcepted}>
                       Refresh Token:<S.Span>{
-                        !!refreshToken ?
-                          refreshToken :
+                        !!refresh_token ?
+                          refresh_token :
                           accessTokenAcepted ?
                           'teste dispensado' :
                           ''
@@ -233,8 +253,8 @@ const HomePage = () => {
                 </S.InnerContainer>
               </S.Column>
               <S.Column>
-                <S.Anchor onClick={handleTest}>
-                  <S.Btn>Repetir Teste</S.Btn>
+                <S.Anchor onClick={() => callMelhorEnvio(credentials, ['shipping_calculate'])}>
+                  <S.Btn>Testar</S.Btn>
                 </S.Anchor>
               </S.Column>
             </S.InnerRow>

@@ -4,7 +4,8 @@
   "info": {
     "singularName": "melhor-envio",
     "pluralName": "melhor-envios",
-    "displayName": "Melhor Envio"
+    "displayName": "Melhor Envio",
+    "description": ""
   },
   "options": {
     "draftAndPublish": false
@@ -17,7 +18,7 @@
     "client_secret": {
       "type": "string"
     },
-    "code": {
+    "authorization_code": {
       "type": "text"
     },
     "redirect_uri": {

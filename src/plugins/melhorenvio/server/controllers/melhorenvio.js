@@ -1,23 +1,24 @@
 'use strict';
 
 module.exports = {
-  async findCredentials(ctx) {
+  async fetchCredentials(ctx) {
     ctx.body = await strapi.db.query('api::melhor-envio.melhor-envio').findMany({
       populate: { category: true }
-    })
+    });
   },
-  async replaceCredentials(ctx) {
-    const regex = /(\?|\&)([^=]+)\=([^&]+)/g
-    const params = [...ctx.request.url.matchAll(regex)]
-    const access_token = params[0][3]
-    const refresh_token = params[1][3]
+  async updateCredentials(ctx) {
+    const regex = /(\?|\&)([^=]+)\=([^&]+)/g;
+    const params = [...ctx.request.url.matchAll(regex)];
+
+    let data = {}
+
+    for (let i = 0; i < params.length; i++) {
+      data[params[i][2]] = params[i][3]
+    }
 
     await strapi.db.query('api::melhor-envio.melhor-envio').update({
       where: { id: 1 },
-      data: {
-        access_token,
-        refresh_token
-      },
+      data
     })
     return ctx.send({status: 200});
   }

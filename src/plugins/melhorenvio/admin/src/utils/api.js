@@ -11,7 +11,7 @@ export const fetchCredentials = async () => {
   }
 };
 
-export const replaceTokens = async (access_token, refresh_token) => {
+export const updateCredentials = async (credentials) => {
 
   const url = `/${pluginId}/credentials`
 
@@ -23,8 +23,7 @@ export const replaceTokens = async (access_token, refresh_token) => {
       'Authorization': `Bearer ${sessionStorage.jwtToken}`
     },
     params: {
-      access_token,
-      refresh_token
+      ...credentials
     }
   };
 

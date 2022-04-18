@@ -2,7 +2,7 @@ module.exports = [
   {
     method: 'GET',
     path: '/credentials',
-    handler: 'melhorenvio.findCredentials',
+    handler: 'melhorenvio.fetchCredentials',
     config: {
       auth: false,
       policies: [],
@@ -11,7 +11,7 @@ module.exports = [
   {
     method: 'POST',
     path: '/credentials',
-    handler: 'melhorenvio.replaceCredentials',
+    handler: 'melhorenvio.updateCredentials',
     config: {
       auth: false,
       policies: [],
