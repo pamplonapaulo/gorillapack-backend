@@ -11,7 +11,7 @@ import { fetchCredentials, updateCredentials } from '../../utils/api';
 
 import Brand from '../../components/Brand';
 
-import { sendRequest, sortByLowestPrice } from '../../utils/testMelhorEnvio';
+import { fetchProducts, sendRequest, sortByLowestPrice } from '../../utils/testMelhorEnvio';
 
 const HomePage = () => {
 
@@ -21,8 +21,6 @@ const HomePage = () => {
   const [refresh_token, setRefreshToken] = useState(undefined)
 
   const [request, setRequest] = useState(undefined)
-  const [response, setResponse] = useState(undefined)
-  const [accessTokenAcepted, setAccessTokenAcepted] = useState(undefined)
 
   const [bestPrice, setBestPrice] = useState(undefined)
   const [packingRules, setPackingRules] = useState(undefined)
@@ -33,13 +31,34 @@ const HomePage = () => {
 
   const [reFetch, setReFetch] = useState(false)
 
-  useEffect(() => {
-    document.title = "Melhor Envio";
+  const [products, setProducts] = useState([])
 
-    const href = '/admin/plugins/melhorenvio?code=def502002835de5d8d0b1d5818c31f12bdf6a526966569f42dd46406afb96a8261d24a89ede1c12fe73fe7e714399092eea6e488566dad408eb622e00b64d98da62de1fc8ffd5e02089355db78b2d3a3e88b0e295bf46ecb83d949190f7a230b444b59006a23d2eed9cead21a6af0dda21c4cbaf56492a9524f50cdd4fb79256ed8024c9078264e9c5bbdfda44c8afa709575f3b6c2bb6bd0c06c5a251b801dbd7dc3e0b515db0f3f5fb32968df5630c296eed071eae9a09f198302124327fe533669bad1090a1d5d7be3af58d191beda5ca3d433799f4c1c9408ffb6a69fdf7127aabb01e67a136558868527534c20a5ccab63c44bb69b75de386d13ece1dccd7bc73e8b7a221c2fa9303e3c66b87b280a4c3cc73bdf144eb6d30a179918f9e253dda8d2c64524b13a943f801a3e328c10fbee9aaab7f7a4f1913bb8e90021ad5267b2de7f30dc54702da52b1dcf84dda398261cfe2a1ab2b5e44637c3538d8b330630b1d82dbc4068654262479643ec8a990ef3d024dad4f1a1da01a76a0aca353048d0e59c8525a1814e35ea6e481511f96989a41a1633aeda55347fc9312702aa43746796874a337479662d17f39d6dee414c82d1aa64c39e4';
-    //watchPathname(href)
-    watchPathname(window.location.href)
+  const [cepOrigin, setCepOrigin] = useState('20756190')
+  const [cepDestiny, setCepDestiny] = useState('26650000')
+
+  useEffect(async () => {
+    document.title = "Melhor Envio";
+    try {
+      const response = await fetchProducts()
+      const result = await response.json()
+      console.log('result')
+      let bag = result.data.data.products.data
+
+      for (let i = 0; i < bag.length; i++) {
+        bag[i]['quantity'] = 0
+      }
+
+      setProducts(bag)
+      watchPathname(window.location.href)
+    } catch (err) {
+      throw new Error(err.message, { cause: err })
+    }
   },[])
+
+  useEffect(() => {
+    console.log('products:')
+    console.log(products)
+  }, [products]);
 
   useEffect(async () => {
     const credents = await fetchCredentials();
@@ -77,36 +96,25 @@ const HomePage = () => {
     );
   }, [refresh_token]);
 
+  const postcodeMask = (brazilianPostCode) =>
+  brazilianPostCode
+    .replace(/\D+/g, '')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .replace(/(-\d{3})\d+?$/, '$1')
+
   const filterTypes = (arr) => {
     if (arr.length === 2 && arr.filter(value => value === 'access_token')) return ['shipping_calculate']
     if (arr.length === 1) return arr
   }
 
   const handleSave = async (obj) => {
-
-    console.log('handle save.......')
-    console.log(Object.getOwnPropertyNames(obj))
-    console.log(obj)
-
-    console.log('and next melhor envio:')
-    console.log(filterTypes(Object.getOwnPropertyNames(obj)))
-
     try {
       const response = await updateCredentials(obj);
       const result = await response.json()
-      console.log('updated credentials:')
       console.log(result)
-
       setReFetch(!reFetch)
-      return callMelhorEnvio(
-        {
-          ...credentials,
-          ...obj
-        },
-        filterTypes(Object.getOwnPropertyNames(obj))
-      )
+      return handleSuccess('update_credentials', obj)
     } catch(err) {
-      console.error(err)
       handleErrors('update_credentials')
       throw new Error(err.message, { cause: err });
     }
@@ -127,10 +135,8 @@ const HomePage = () => {
     try {
       const response = await sendRequest(creds, type[0])
       const result = await response.json()
-      console.log(result)
-      return type[0] === 'shipping_calculate' ? handleSuccess(result) : handleSave(result)
+      return handleSuccess(type[0], result)
     } catch(err) {
-      console.error(err)
       handleErrors(type[0])
       throw new Error(err.message, { cause: err });
     }
@@ -138,13 +144,12 @@ const HomePage = () => {
 
   const handleErrors = (err) => {
     if (err === 'shipping_calculate') {
-      setAccessTokenAcepted(false)
+      setAccessToken(false)
       return callMelhorEnvio(credentials, ['refresh_token'])
     }
 
     if (err === 'refresh_token') {
       setRefreshToken(false)
-      setResponse(false)
       setCheapestCompany(false)
       setBestPrice(false)
       setPackingRules(false)
@@ -154,7 +159,7 @@ const HomePage = () => {
     }
 
     if (err === 'authorization_code') {
-      setCodeAcepted(false)
+      setAuthorizationCode(false)
       console.error('You must call the suppor!')
       // return callFatalError()
     }
@@ -164,28 +169,74 @@ const HomePage = () => {
     }
   }
 
-  const handleSuccess = (res) => {
-    setAccessTokenAcepted('válido')
-    setResponse('recebida')
-    setCheapestCompany(sorted[0].company.name)
-    const sorted = sortByLowestPrice(res.data)
-    setBestPrice(sorted[0].currency + ' ' + sorted[0].price)
-    setPackingRules(
-      sorted[0].packages[0].dimensions.height + 'cm x ' +
-      sorted[0].packages[0].dimensions.length + 'cm x ' +
-      sorted[0].packages[0].dimensions.width + 'cm'
-    )
-    setDeliveryTime(sorted[0].delivery_time + ' dias')
-    setFinished(true)
+  const handleSuccess = (type, result) => {
+
+    if (type === 'update_credentials') {
+      callMelhorEnvio(
+        {
+          ...credentials,
+          ...result
+        },
+        filterTypes(Object.getOwnPropertyNames(result)))
+    }
+
+    if (type === 'authorization_code') {
+      setAuthorizationCode(credentials.authorization_code)
+      handleSave(result)
+    }
+
+    if (type === 'refresh_token') {
+      setRefreshToken(credentials.refresh_token)
+      handleSave(result)
+    }
+
+    if (type === 'shipping_calculate') {
+      setAccessToken(credentials.access_token)
+      const sorted = sortByLowestPrice(result.data)
+      setCheapestCompany(sorted[0].company.name)
+      setBestPrice(sorted[0].currency + ' ' + sorted[0].price)
+      setPackingRules(
+        sorted[0].packages[0].dimensions.height + 'cm x ' +
+        sorted[0].packages[0].dimensions.length + 'cm x ' +
+        sorted[0].packages[0].dimensions.width + 'cm'
+      )
+      setDeliveryTime(sorted[0].delivery_time + ' dia' + (sorted[0].delivery_time > 1 ? 's' : ''))
+      setFinished(true)
+    }
+
   }
 
-  const convertDate = (date) => new Date(date).toLocaleDateString('pt-BR');
+  const convertDate = (timestamp) => [new Date(timestamp).toLocaleTimeString('pt-BR'), new Date(timestamp).toLocaleDateString('pt-BR')];
 
   const showTime = (t) => t.getHours() + ":"
       + (t.getMinutes() < 10 ? '0' : '' ) + t.getMinutes() + " de "
       + t.getDate() + "/"
       + (t.getMonth()+1)  + "/"
       + t.getFullYear();
+
+  const handleBag = (id, newQuantity) => {
+    const pack = []
+    products.map((p) => {{
+      if (p.id === id && newQuantity !== -1) {
+        pack.push(
+          {
+            ...p,
+            quantity: newQuantity
+          }
+        )
+      } else {
+        pack.push(p)
+      }
+    }})
+    setProducts(pack)
+  }
+
+  const handleCepChange = (e) => {
+    const target = e.target
+
+    if (target.name === 'origin') setCepOrigin(postcodeMask(target.value))
+    if (target.name === 'destiny') setCepDestiny(postcodeMask(target.value))
+  }
 
   return (
     <>
@@ -194,74 +245,150 @@ const HomePage = () => {
       </S.Container>
 
       <S.Container>
-        <S.Subtitle>Verifique se o seu plugin Melhor Envio contém credenciais válidas. Caso as credenciais do lojista não estejam válidas, será necessário que seus dados e preferências sejam recadastrados no plugin do desenvolvedor. Para tal, clique no botão abaixo e preencha o formulário na página para a qual você será redirecionado. Após gravar seus dados, você será redirecionado novamente. Aguarde a mensagem final confirmando a atualização das suas credenciais.</S.Subtitle>
+        <S.Subtitle>Caso suas credenciais tenham perdido a validade, refaça o cadastro através do botão "Recadastrar". Uma nova aba abrirá o formulário do Melhor Envio. Por segurança, feche a aba do Gorilla Admin antes de submeter o formulário do Melhor Envio. Após confirmar, você será redirecionado de volta ao plugin dentro da loja e novos testes serão executados automaticamente - aguarde o término antes de fechar.</S.Subtitle>
 
-        <S.Anchor href={`https://sandbox.melhorenvio.com.br/oauth/authorize?client_id=${credentials.client_id}&redirect_uri=${credentials.redirect_uri}&response_type=code&scope=shipping-calculate`} target="_blank">
-          <S.Btn>Recadastrar</S.Btn>
-        </S.Anchor>
       </S.Container>
 
       <S.Container>
         <S.Row>
           <S.Column>
-            <S.Subtitle>Última atualização de Token:</S.Subtitle>
+            <S.Subtitle>Ações:</S.Subtitle>
+            <S.Row>
+              <S.Anchor onClick={() => callMelhorEnvio(credentials, ['shipping_calculate'])}>
+                <S.Btn>Cotar frete</S.Btn>
+              </S.Anchor>
+              <S.Anchor href={`https://sandbox.melhorenvio.com.br/oauth/authorize?client_id=${credentials.client_id}&redirect_uri=${credentials.redirect_uri}&response_type=code&scope=shipping-calculate`} target="_blank">
+                <S.Btn>Recadastrar</S.Btn>
+              </S.Anchor>
+            </S.Row>
+          </S.Column>
+          <S.Column>
+            <S.Subtitle>CEP da origem:</S.Subtitle>
             <S.InnerContainer>
-              <S.Subtitle>{convertDate(credentials.updatedAt)}</S.Subtitle>
+              <S.PostCode
+                // onFocus={handleFocusIn}
+                type="text"
+                name="origin"
+                placeholder="CEP da origem"
+                pattern="(\d{5})-(\d{3})"
+                value={postcodeMask(cepOrigin)}
+                onChange={handleCepChange}
+                // onBlur={handleFocusOut}
+                // isValid={validation.postCode}
+              />
             </S.InnerContainer>
           </S.Column>
           <S.Column>
+            <S.Subtitle>CEP do destino:</S.Subtitle>
+            <S.InnerContainer>
+            <S.PostCode
+                // onFocus={handleFocusIn}
+                type="text"
+                name="destiny"
+                placeholder="CEP do destino"
+                pattern="(\d{5})-(\d{3})"
+                value={postcodeMask(cepDestiny)}
+                onChange={handleCepChange}
+                // onBlur={handleFocusOut}
+                // isValid={validation.postCode}
+              />
+              {/* <S.PostCode>{'22240-000'}</S.PostCode> */}
+            </S.InnerContainer>
+          </S.Column>
+        </S.Row>
+        <S.Row>
+          <S.Column>
             <S.InnerRow>
               <S.Column>
-                <S.Subtitle>Teste da cotação de fretes:</S.Subtitle>
-                <S.InnerContainer>
-
+                <S.Subtitle>Status:</S.Subtitle>
+                <S.TestContainer>
                   <S.TestList>
                     <S.TestItem hasPassed={request}>
-                      Requisição:<S.Span>{!!request ? request : ''}</S.Span>
+                      Requisição:<S.Span></S.Span>
                     </S.TestItem>
-                    <S.TestItem hasPassed={accessTokenAcepted}>
-                      Access Token:<S.Span>{!!accessTokenAcepted ? accessTokenAcepted : ''}</S.Span>
+                    <S.TestItem hasPassed={refresh_token} skipped={access_token}>
+                      Authorization Code:<S.Span></S.Span>
                     </S.TestItem>
-                    <S.TestItem hasPassed={refresh_token} skipped={accessTokenAcepted}>
-                      Refresh Token:<S.Span>{
-                        !!refresh_token ?
-                          refresh_token :
-                          accessTokenAcepted ?
-                          'teste dispensado' :
-                          ''
-                        }</S.Span>
+                    <S.TestItem hasPassed={access_token}>
+                      Access Token:<S.Span></S.Span>
                     </S.TestItem>
-                    <S.TestItem hasPassed={response}>
-                      Response recebido:<S.Span>{!!response ? response : ''}</S.Span>
+                    <S.TestItem hasPassed={refresh_token} skipped={access_token}>
+                      Refresh Token:<S.Span></S.Span>
                     </S.TestItem>
-                    <S.TestItem hasPassed={cheapestCompany}>
-                      Transportadora:<S.Span>{!!cheapestCompany ? cheapestCompany : ''}</S.Span>
+                    <S.TestItem hasPassed={cheapestCompany} content={cheapestCompany}>
+                      Transportadora:<S.Span>{cheapestCompany}</S.Span>
                     </S.TestItem>
-                    <S.TestItem hasPassed={bestPrice}>
-                      Valor da melhor cotação:<S.Span>{!!bestPrice ? bestPrice : ''}</S.Span>
+                    <S.TestItem hasPassed={bestPrice} content={bestPrice}>
+                      Valor da melhor cotação:<S.Span>{bestPrice}</S.Span>
                     </S.TestItem>
-                    <S.TestItem hasPassed={packingRules}>
-                      Empacotamento:<S.Span>{!!packingRules ? packingRules : ''}</S.Span>
+                    <S.TestItem hasPassed={packingRules} content={packingRules}>
+                      Empacotamento:<S.Span>{packingRules}</S.Span>
                     </S.TestItem>
-                    <S.TestItem hasPassed={deliveryTime}>
-                      Tempo estimado de viagem:<S.Span>{!!deliveryTime ? deliveryTime : ''}</S.Span>
+                    <S.TestItem hasPassed={deliveryTime} content={deliveryTime}>
+                      Tempo estimado de viagem:<S.Span>{deliveryTime}</S.Span>
                     </S.TestItem>
                     <S.TestItem hasPassed={finished}>
                       Teste encerrado:<S.Span>{!!finished ? showTime(new Date()) : ''}</S.Span>
                     </S.TestItem>
                   </S.TestList>
-                </S.InnerContainer>
-              </S.Column>
-              <S.Column>
-                <S.Anchor onClick={() => callMelhorEnvio(credentials, ['shipping_calculate'])}>
-                  <S.Btn>Testar</S.Btn>
-                </S.Anchor>
+                </S.TestContainer>
               </S.Column>
             </S.InnerRow>
           </S.Column>
-        </S.Row>
+          <S.Column>
+            <S.Subtitle>Produtos a fretar:</S.Subtitle>
+            <S.ProdsWrap>
+              {products.map((p) => {
+                console.log(p)
+                return (
+                  <S.Prod key={p.id}>
+                    <p>{p.attributes.Name}</p>
+                    <div>
 
+
+                    <div>
+                      <p>Width: <span>{p.attributes.Width} cm</span></p>
+                    </div>
+                    <div>
+                      <p>Height: <span>{p.attributes.Height} cm</span></p>
+                    </div>
+                    <div>
+                      <p>Length: <span>{p.attributes.Length} cm</span></p>
+                    </div>
+                    <div>
+                      <p>Weight: <span>{p.attributes.Weight} gr</span></p>
+                    </div>
+                    <div>
+                      <p>Insurance: <span>R$ {'0.0'}</span></p>
+                    </div>
+
+                    </div>
+
+                    <S.Row>
+                      <S.Anchor onClick={() => handleBag(p.id, p.quantity - 1)}>
+                        <S.Btn>-</S.Btn>
+                      </S.Anchor>
+                      <div>
+                        <p>{p.quantity}</p>
+                      </div>
+                      <S.Anchor onClick={() => handleBag(p.id, p.quantity + 1)}>
+                        <S.Btn>+</S.Btn>
+                      </S.Anchor>
+                    </S.Row>
+                  </S.Prod>
+                )
+              })}
+            </S.ProdsWrap>
+          </S.Column>
+        </S.Row>
         <S.Row>
+          <S.Column>
+            <S.Subtitle>Última atualização:</S.Subtitle>
+            <S.InnerContainer>
+              <S.Subtitle>{convertDate(credentials.updatedAt)[0]}</S.Subtitle>
+              <S.Subtitle>{convertDate(credentials.updatedAt)[1]}</S.Subtitle>
+            </S.InnerContainer>
+          </S.Column>
           <S.Column>
             <S.Subtitle>Access Token:</S.Subtitle>
             <S.InnerContainer>
@@ -275,9 +402,7 @@ const HomePage = () => {
               <S.Token>{credentials.refresh_token}</S.Token>
             </S.InnerContainer>
           </S.Column>
-
         </S.Row>
-
       </S.Container>
     </>
   );
