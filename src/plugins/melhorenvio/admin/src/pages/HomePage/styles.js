@@ -178,6 +178,11 @@ export const Row = styled.div`
   &&:nth-of-type(1) {
     justify-content: start;
 
+    ${InnerContainer} {
+      display: flex;
+      width: 160px;
+    }
+
     ${Column}:nth-child(1) {
 
       width: unset;
@@ -298,8 +303,9 @@ export const Container = styled.section`
   background: #212134;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
   margin: 56px;
+  overflow-x: hidden;
+  padding: 1.5rem;
 
   ${Subtitle} {
     color: #a5a5ba;
@@ -328,12 +334,22 @@ export const Container = styled.section`
     }
   }
 
+  &&:nth-of-type(3) {
+
+    > ${Row}:nth-of-type(2){
+      justify-content: start;
+    }
+  }
+
+
   ${Row}:nth-child(2) ${Column}:nth-child(1) {
     /* width: calc(50% - calc(1.5rem/2)); */
+    margin-right: 0.75rem;
     width: unset;
   }
 
   ${Row}:nth-child(2) ${Column}:nth-child(2) {
+    overflow-x: hidden;
     width: calc(75% - calc(1.5rem/2));
   }
 `
@@ -355,20 +371,22 @@ export const Btn = styled.button`
   border: 1px solid #7b79ff;
   border-radius: 4px;
   color: #ffffff;
-  cursor: pointer;
+  cursor: ${(p) => p.isOff ? 'default' : 'pointer'};
   display: flex;
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.33;
   margin: 0;
+  opacity: ${(p) => p.isOff ? '0.3' : '1'};
   outline: none;
   padding: 8px 16px;
 
   @media only screen and (min-width: 1024px) {
 
     &:hover {
-      border: 1px solid #4945ff;
-      background: #4945ff;
+      border: 1px solid;
+      border-color: ${(p) => p.isOff ? '#7b79ff' : '#4945ff'};
+      background: ${(p) => p.isOff ? '#7b79ff' : '#4945ff'};
     }
   }
 `
@@ -377,22 +395,47 @@ export const ProdsWrap = styled.div`
   width: 100%;
   display: flex;
   flex-direction: row;
-  overflow-x: hidden;
+  overflow-x: scroll;
   flex-wrap: nowrap;
+
+  &&::-webkit-scrollbar {
+    height: 6px;
+    border: none;
+  }
+
+  &&::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    border: 2px solid transparent;
+    }
+
+  &&::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.2) !important;
+    outline: none !important;
+    border-radius: 5px;
+    height: 3px !important;
+    margin: 2px;
+  }
+
+  &&::-webkit-scrollbar-track {
+    //box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  }
 `
 
 export const Prod = styled.div`
   background: rgba(0,0,0,0.2);
+  border: 1px solid;
+  border-color: ${(p) => p.isOnBag ? 'rgba(255,255,255,0.4)' : 'transparent'};
   border-radius: 5px;
   padding: 0.75rem;
   margin: 0.5rem 1.5rem 0.75rem 0;
   min-height: 235px;
   width: 160px;
+  min-width: 160px;
 
   p {
     line-height: 1.9;
     font-size: 0.75rem;
-    color: rgba(204,204,204,0.6);
+    color: ${(p) => p.isOnBag ? '#ffffff' : 'rgba(255,255,255,0.3)'};
 
     span {
       float: right;
@@ -427,7 +470,7 @@ export const Prod = styled.div`
 export const PostCode = styled.input`
   background: transparent;
   border: none;
-  color: rgba(204,204,204,0.6);
+  color: ${(p) => p.value.length < 9 ? 'red' : 'rgba(204,204,204,0.6)'};
   display: table-cell;
   font-size: 0.75rem;
   letter-spacing: 2px;
@@ -439,4 +482,13 @@ export const PostCode = styled.input`
   word-break: break-all;
   width: 160px;
   text-align: center;
+`
+
+export const Frame = styled.div`
+  display: grid;
+  grid-template-columns: auto 1fr;
+`
+
+export const OverFlorwHidden = styled.div`
+  overflow-x: hidden;
 `

@@ -57,48 +57,7 @@ export const fetchProducts = async () => {
   }
 }
 
-const getProducts = () => {
-  const data = {
-    from: {
-      postal_code: '20756190'
-    },
-    to: {
-      postal_code: '70070-130'
-    },
-    products: [
-      {
-        id: 'x',
-        width: 6,
-        height: 6,
-        length: 3,
-        weight: 0.05,
-        insurance_value: 0,
-        quantity: 1
-      },
-      {
-        id: 'y',
-        width: 6,
-        height: 6,
-        length: 3,
-        weight: 0.05,
-        insurance_value: 0,
-        quantity: 1
-      },
-      {
-        id: 'z',
-        width: 6,
-        height: 6,
-        length: 3,
-        weight: 0.05,
-        insurance_value: 0,
-        quantity: 1
-      }
-    ]
-  };
-  return data
-}
-
-export const sendRequest = async (creds, grant_type) => {
+export const sendRequest = async (creds, grant_type, body) => {
   const url = domain + (grant_type === 'shipping_calculate' ? 'api/v2/me/shipment/calculate' : 'oauth/token');
   let headers = {
     'Accept': 'application/json',
@@ -108,7 +67,7 @@ export const sendRequest = async (creds, grant_type) => {
   if (grant_type === 'shipping_calculate') {
     headers['Content-Type'] = 'application/json'
     headers['Authorization'] = `Bearer ${creds.access_token}`
-    data = getProducts()
+    data = body
   } else {
     data = {
       grant_type,
