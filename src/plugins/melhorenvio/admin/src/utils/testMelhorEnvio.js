@@ -43,7 +43,7 @@ export const fetchProducts = async () => {
 
   try {
     const obj = await axios.post(
-      'http://localhost:1337/graphql',
+      'https://gorillapack.herokuapp.com/graphql',
       { query },
       {
         headers: {
