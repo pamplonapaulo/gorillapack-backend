@@ -88,62 +88,45 @@ module.exports = {
       }
 
       const requestMelhorEnvio = async (grant_type, url, callBack, dataObj) => {
+
         const options = {
           url,
           method: 'POST',
           headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'Aplicação (email para contato técnico)',
+            'Accept': 'application/json'
           },
           data: {
-            grant_type,
-            ...dataObj
+            ...data
           }
-        };
-        if (grant_type === undefined) {
-          console.log('// credenciais aprovadas. cotar frete')
-          options.headers.Authorization = 'Bearer ' + getCredentials(['access_token'])
-        }
-        console.log('grant_type: ', grant_type)
-        if (grant_type === 'refresh_token') {
-          console.log('// access token expirado. usar refresh token')
-          options.data.refresh_token = getCredentials(['refresh_token']),
-          options.data.client_id = getCredentials(['client_id']),
-          options.data.client_secret = getCredentials(['client_secret'])
         }
 
-        // if (grant_type === 'authorization_code') {
-        //   console.log('// todos os tokens expirados. usars CODE')
-        //   options.data.code = getCredentials(['code'])
-        //   options.data.client_id = getCredentials(['client_id']),
-        //   options.data.client_secret = getCredentials(['client_secret'])
-        //   options.data.redirect_uri = 'https://gorilla.vercel.app'
-        // }
+        if (grant_type === undefined) {
+          const access_token = await getCredentials(['access_token'])
+
+          options.data.products = dataObj
+          options.headers['Authorization'] = `Bearer ${access_token.access_token}`
+        } else {
+          options.data['grant_type'] = grant_type
+        }
+
+        if (grant_type === 'refresh_token') {
+          const creds = await getCredentials(['access_token', 'refresh_token', 'client_id', 'client_secret'])
+          options.data.refresh_token = creds.refresh_token
+          options.data.client_id = creds.client_id
+          options.data.client_secret = creds.client_secret
+        }
 
         try {
           const res = await axios(options)
           console.log(res.data)
           return callBack(res.data)
         } catch (error) {
-          console.log('Handling the error: ')
-          //console.log(error.response)
-          console.log(error.response.data)
+          console.log('Just before Handling errors: ', error.response.data.message)
           return handleErrors(error.response.data)
         }
       }
 
       const handleErrors = (msg) => {
-        console.log(' ')
-        console.log(' ')
-        console.log(msg)
-        console.log(msg)
-        console.log(msg)
-        console.log(msg)
-        console.log(msg)
-        console.log(' ')
-        console.log(' ')
-        console.log(' ')
-
         if (msg.message === 'Unauthenticated.') {
           console.log('// solicitar TOKEN REFRESH')
           return requestMelhorEnvio(
@@ -173,76 +156,9 @@ module.exports = {
 
         if (msg === 'Authorization code has expired.') {
           console.log('// FUDEU: Agora só acessando a URL manualmente')
-          return 'FUDEU: Agora só acessando a URL manualmente'
-          // URL: 'https://sandbox.melhorenvio.com.br/oauth/authorize?client_id=2385&redirect_uri=https://gorilla.vercel.app&response_type=code&scope=shipping-calculate'
-          // save new CODE at Strapi
-          // get new TOKEN at MelhorEnvio
-          // save new TOKEN at Strapi
-          // start again:
-          // return getMelhorEnvioPrices(getCredentials(['access_token']))
+          return 'Authorization code has expired. Gorilla Pack must register the plugin again.'
         }
       }
-
-      /*
-      const refreshToken = async (credentials) => {
-        const options = {
-          url: 'https://sandbox.melhorenvio.com.br/oauth/token',
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'Aplicação (email para contato técnico)'
-          },
-          data: {
-            'grant_type': 'refresh_token',
-            'refresh_token': `${credentials.refresh_token}`,
-            'client_id': `${credentials.client_id}`,
-            'client_secret': `${credentials.client_secret}`
-          }
-        };
-
-        try {
-          const newToken = await axios(options)
-          console.log('ATTENTION THERE IS A NEW TOKEN: ')
-          console.log(newToken.data)
-          return saveNewToken(newToken.data)
-        } catch (error) {
-          console.log(error.response.data.error_description)
-          return 'fim'
-          return hxandleErrors(error.response.data.error_description)
-        }
-      }
-      */
-
-      /*
-      const getMelhorEnvioPrices = async (credentials) => {
-        const options = {
-          url: 'https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate',
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${credentials.access_token}`,
-            'User-Agent': 'Aplicação (email para contato técnico)'
-          },
-          data: JSON.stringify({
-            from: {
-              postal_code: gorillaPostCode,
-            },
-            to: {
-              postal_code: dropOffPostCode,
-            },
-            products: products,
-          })
-        };
-
-        try {
-          const result = await axios(options)
-          return sortByLowestPrice(result.data)
-        } catch (error) {
-          return hxandleErrors(error.response.data.message)
-        }
-      }
-      */
 
       const validatePack = async (freeDeliveryValue, promotionZone) => {
         await Promise.all(
@@ -254,16 +170,14 @@ module.exports = {
             if(validatedSnack) {
               const product = {
                 id: validatedSnack.id,
-                baseValue: validatedSnack.BaseValue,
                 width: validatedSnack.Width,
                 height: validatedSnack.Height,
                 length: validatedSnack.Length,
-                weight: validatedSnack.Weight / 100,
+                weight: validatedSnack.Weight / 1000,
                 insurance_value: 0,
                 quantity: snack.quantity,
-                name: validatedSnack.Name
               }
-              orderPrice += product.baseValue * parseInt(product.quantity)
+              orderPrice += validatedSnack.BaseValue * parseInt(product.quantity)
               data.products.push(product)
             }
           })
@@ -272,11 +186,13 @@ module.exports = {
         if(freeDeliveryValue <= orderPrice && promotionZone) {
           noFee = promotionZone
         }
+
         return requestMelhorEnvio(
           undefined,
           'https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate',
           sortByLowestPrice,
-          JSON.stringify(data.products),
+          data.products,
+          // JSON.stringify(data.products),
         )
       }
 
