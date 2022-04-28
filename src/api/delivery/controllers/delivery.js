@@ -83,7 +83,8 @@ module.exports = {
           undefined,
           'https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate',
           sortByLowestPrice,
-          JSON.stringify(data.products),
+          data.products,
+          // JSON.stringify(data.products),
         )
       }
 
