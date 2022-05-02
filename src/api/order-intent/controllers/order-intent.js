@@ -14,7 +14,7 @@ module.exports = {
 
         let data = {
           users_permissions_user,
-          Title: 'Custom',
+          Title: 'TEST',
           pack,
           snack,
           period,
