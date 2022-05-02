@@ -14,7 +14,7 @@ module.exports = {
 
         let data = {
           users_permissions_user,
-          Title: 'TEST',
+          Title: 'Custom',
           pack,
           snack,
           period,
@@ -110,8 +110,6 @@ module.exports = {
               date: new Date(dateStr).toISOString().substring(0, 10)
             })
 
-            console.log('Dias de recebimento: ', expectedArrivalDays)
-
             year = month === 11 ? year+1 : year
             month = month === 11 ? 0 : month+1
           }
@@ -197,7 +195,8 @@ module.exports = {
           return snks
         }
 
-        const getDataFromPack = async () => {
+        const getSnacksFromPack = async () => {
+
           // This env variable is not considering Prod Env yet
           const packData = await axios.post(process.env.GRAPHQL_HOST, {
             query: `query packs {
@@ -235,8 +234,7 @@ module.exports = {
         }
 
         const handlePackType = (snacks, pack) => {
-          if (!pack && !snacks || pack && snacks) return 'erro no conteúdo da ordem'
-          if (!snacks && pack) return getDataFromPack(pack)
+          if (!snacks && pack) return getSnacksFromPack(pack)
           if (!pack && snacks) return getSubtotalFromSnacks(snacks)
         }
 

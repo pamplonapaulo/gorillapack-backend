@@ -119,17 +119,16 @@ module.exports = {
 
         try {
           const res = await axios(options)
-          console.log(res.data)
           return callBack(res.data)
         } catch (error) {
-          console.log('Just before Handling errors: ', error.response.data.message)
+          console.log('About to handle error: ', error.response.data.message)
           return handleErrors(error.response.data)
         }
       }
 
       const handleErrors = (msg) => {
         if (msg.message === 'Unauthenticated.') {
-          console.log('// solicitar TOKEN REFRESH')
+          console.log('// trying REFRESH TOKEN')
           return requestMelhorEnvio(
             'refresh_token',
             'https://sandbox.melhorenvio.com.br/oauth/token',
@@ -138,7 +137,7 @@ module.exports = {
         }
 
         if (msg === 'Token has been revoked' || msg === 'Error.') {
-          console.log('// solicitar novo TOKEN')
+          console.log('// trying AUTHORIZATION CODE')
           return requestMelhorEnvio(
             'authorization_code',
             'https://sandbox.melhorenvio.com.br/oauth/token',
@@ -147,7 +146,7 @@ module.exports = {
         }
 
         if (msg === 'Client authentication failed.') {
-          console.log('// also solicitar TOKEN REFRESH')
+          console.log('// trying REFRESH TOKEN')
           return requestMelhorEnvio(
             'refresh_token',
             'https://sandbox.melhorenvio.com.br/oauth/token',
@@ -156,7 +155,7 @@ module.exports = {
         }
 
         if (msg === 'Authorization code has expired.') {
-          console.log('// FUDEU: Agora só acessando a URL manualmente')
+          console.log('// Please manually register again the Melhor Envio Plugin')
           return 'Authorization code has expired. Gorilla Pack must register the plugin again.'
         }
       }
