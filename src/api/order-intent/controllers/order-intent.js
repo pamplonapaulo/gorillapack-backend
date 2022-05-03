@@ -10,12 +10,11 @@ const { getDeliveryFee } = require('../../delivery/controllers/delivery')
 
 module.exports = {
   create: async (ctx) => {
-      const { users_permissions_user, period, snack, pack, postCode } = ctx.request.body
 
-      console.log('pack')
-      console.log(pack)
-      console.log('snack')
-      console.log(snack)
+      console.log('process.env.GRAPHQL_HOST')
+      console.log(process.env.GRAPHQL_HOST)
+
+      const { users_permissions_user, period, snack, pack, postCode } = ctx.request.body
 
       let data = {
         users_permissions_user,
@@ -201,9 +200,6 @@ module.exports = {
       }
 
       const getSnacksFromPack = async () => {
-
-        console.log('getSnacksFromPack')
-
         // This env variable is not considering Prod Env yet
         const packData = await axios.post(process.env.GRAPHQL_HOST, {
           query: `query packs {
@@ -231,12 +227,8 @@ module.exports = {
             'Content-Type': 'application/json'
           }
         })
-        console.log('packData.data.data.pack.data.attributes.Name')
-        console.log(packData.data.data.pack.data.attributes.Name)
 
         data.Title = packData.data.data.pack.data.attributes.Name
-        console.log('data.Title')
-        console.log(data.Title)
 
         return getSubtotalFromSnacks(
           regroupSnacksProps(packData.data.data.pack.data.attributes.Item),

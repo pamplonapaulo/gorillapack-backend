@@ -1,6 +1,5 @@
 import AuthLogo from './extensions/config.auth.logo.png';
-import MenuLogo from './extensions/favicon-capital-gray.png';
-import favicon from './extensions/favicon-capital.png';
+import Logo from './extensions/logo.png';
 
 export default {
   config: {
@@ -8,7 +7,7 @@ export default {
       logo: AuthLogo,
     },
     head: {
-      favicon: favicon,
+      favicon: Logo,
     },
     locales: [
       'pt-BR'
@@ -17,7 +16,7 @@ export default {
       logo: AuthLogo,
     },
     menu: {
-      logo: MenuLogo,
+      logo: Logo,
     },
     theme: {
       borderRadius: '0px'
