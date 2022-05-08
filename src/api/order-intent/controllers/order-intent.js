@@ -11,22 +11,21 @@ const { getDeliveryFee } = require('../../delivery/controllers/delivery')
 module.exports = {
   create: async (ctx) => {
 
-      console.log('process.env.GRAPHQL_HOST')
-      console.log(process.env.GRAPHQL_HOST)
-
       const { users_permissions_user, period, snack, pack, postCode } = ctx.request.body
 
       let data = {
         users_permissions_user,
-        Title: 'Custom',
+        Title: 'Customizado',
         pack,
         snack,
         period,
         deliveries: {},
         address: {},
         expectedPayments: {
-          valueInCentavos: null,
-          MonthsMultiplier: null
+          absoluteDiscountApplied: 0,
+          finalValueInCentavos: 0,
+          monthsMultiplier: 0,
+          contentCostBeforeDiscount: null
         },
       }
 
@@ -131,7 +130,8 @@ module.exports = {
       const convertToCents = (num) => parseInt(num.toFixed(2).toString().replace(/(\d{1,})(\.)(\d{1,2})/g, '$1' + '$3'))
 
       const getExpectedPayments = () => {
-        data.expectedPayments.valueInCentavos = convertToCents((orderMath.snacksTotal - orderMath.subscription.absoluteDiscount) + data.deliveries.fee)
+        data.expectedPayments.contentCostBeforeDiscount = orderMath.snacksTotal
+        data.expectedPayments.finalValueInCentavos = convertToCents((orderMath.snacksTotal - orderMath.subscription.absoluteDiscount) + data.deliveries.fee)
         data.deliveries.fee = data.deliveries.fee.toString()
         return handleCalendar()
       }
@@ -140,10 +140,12 @@ module.exports = {
         const subscription = await strapi.query('api::period.period').findOne({
           where: { id: period }
         });
-        data.expectedPayments.MonthsMultiplier = subscription.Multiplier
+
+        data.expectedPayments.monthsMultiplier = subscription.Multiplier
         orderMath.subscription.Multiplier = subscription.Multiplier
         orderMath.subscription.percentualDiscount = subscription.Discount
         orderMath.subscription.absoluteDiscount = subscription.Discount * orderMath.snacksTotal
+        data.expectedPayments.absoluteDiscountApplied = orderMath.subscription.absoluteDiscount
         return getExpectedPayments()
       }
 
