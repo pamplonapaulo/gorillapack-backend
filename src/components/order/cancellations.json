@@ -1,20 +1,23 @@
 {
   "collectionName": "components_order_cancellations",
   "info": {
-    "displayName": "cancellations",
+    "displayName": "deactivations",
     "icon": "times",
     "description": ""
   },
   "options": {},
   "attributes": {
-    "deactivatedByCustomer": {
-      "type": "boolean"
+    "byCustomer": {
+      "type": "boolean",
+      "default": false
     },
-    "deactivatedByGorilla": {
-      "type": "boolean"
+    "byGorilla": {
+      "type": "boolean",
+      "default": false
     },
-    "deactivatedByTimeOut": {
-      "type": "boolean"
+    "byTimeOut": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
