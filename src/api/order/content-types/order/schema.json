@@ -59,7 +59,7 @@
     },
     "isConfirmed": {
       "type": "boolean",
-      "default": false
+      "default": true
     },
     "Title": {
       "type": "string",
