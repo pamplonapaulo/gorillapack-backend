@@ -43,8 +43,8 @@ module.exports = {
           const order = await strapi.service('api::order.order').create({data})
           return order.id
         } catch(err) {
-          console.log(err)
-          return err
+          ctx.throw(err.status, err.message);
+          //throw new Error(err.message, { cause: err });
         }
       }
 
@@ -202,7 +202,6 @@ module.exports = {
       }
 
       const getSnacksFromPack = async () => {
-        // This env variable is not considering Prod Env yet
         const packData = await axios.post(process.env.GRAPHQL_HOST, {
           query: `query packs {
             pack(id: ${pack}) {
@@ -243,6 +242,31 @@ module.exports = {
         if (!pack && snacks) return getSubtotalFromSnacks(snacks)
       }
 
-      return handlePackType(snack, pack)
+      const preventAnotherActiveOrder = async (users_permissions_user) => {
+        try {
+          const activeOrder = await strapi.query('api::order.order').findOne({
+            where: { users_permissions_user, deactivated: false, isConfirmed: true },
+          });
+
+          if (activeOrder === null) {
+            return handlePackType(snack, pack)
+          } else {
+            ctx.throw(409, 'Duplication Conflit');
+
+            // return {
+            //   "data": null,
+            //   "error": {
+            //     "status": 409,
+            //     "name": "DuplicationError",
+            //     "message": "Order Conflit"
+            //   }
+            // }
+          }
+        } catch(err) {
+          ctx.throw(err.status, err.message);
+          //throw new Error(err.message, { cause: err });
+        }
+      }
+      return preventAnotherActiveOrder(users_permissions_user)
     },
 };
