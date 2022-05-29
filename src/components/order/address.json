@@ -12,10 +12,12 @@
       "required": true
     },
     "numero": {
-      "type": "string"
+      "type": "string",
+      "regex": "\\D*\\s*\\d*"
     },
     "complemento": {
-      "type": "string"
+      "type": "string",
+      "regex": "\\D*\\s*\\d*"
     },
     "bairro": {
       "type": "string"

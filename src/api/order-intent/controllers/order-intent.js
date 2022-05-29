@@ -149,14 +149,6 @@ module.exports = {
         return getExpectedPayments()
       }
 
-      const getUserName = async () => {
-        const userName = await strapi.query('plugin::users-permissions.user').findOne({
-          where: { id: users_permissions_user }
-        });
-        data.address.nome = userName.username
-        return getSubscriptionDiscount()
-      }
-
       const calculateDelivery = async (snacks) => {
         const deliveryData = await getDeliveryFee({
           request: {
@@ -167,8 +159,14 @@ module.exports = {
           }
         })
         data.deliveries = { ...deliveryData.quotation }
-        data.address = { ...deliveryData.address }
-        return getUserName()
+        data.address = {
+          ...deliveryData.address,
+          nome: data.address.nome,
+          numero: data.address.numero,
+          complemento: data.address.complemento
+        }
+
+        return getSubscriptionDiscount()
       }
 
       const getSubtotalFromSnacks = async (snacks, packDiscount = 0) => {
@@ -252,21 +250,38 @@ module.exports = {
             return handlePackType(snack, pack)
           } else {
             ctx.throw(409, 'Duplication Conflit');
-
-            // return {
-            //   "data": null,
-            //   "error": {
-            //     "status": 409,
-            //     "name": "DuplicationError",
-            //     "message": "Order Conflit"
-            //   }
-            // }
           }
         } catch(err) {
           ctx.throw(err.status, err.message);
-          //throw new Error(err.message, { cause: err });
         }
       }
-      return preventAnotherActiveOrder(users_permissions_user)
+
+      const getAddressExtraFieldsIfAvailable = (numero, complemento) => {
+        if (numero) data.address.numero = numero
+        if (complemento) data.address.complemento = complemento
+        return preventAnotherActiveOrder(users_permissions_user)
+      }
+
+      const confirmPostcodeMatch = async (users_permissions_user, postCode) => {
+        console.log('CEP entrando pelo input: ', postCode)
+        try {
+          const user = await strapi.query('plugin::users-permissions.user').findOne({
+            where: { id: users_permissions_user }
+          });
+
+          console.log('CEP salvo no database: ', user.postCode)
+
+          if (postCode === user.postCode) {
+            data.address.nome = user.username
+            getAddressExtraFieldsIfAvailable(user.addressNumber, user.addressComplement)
+          } else {
+            ctx.throw(409, 'PostCode Conflit');
+          }
+        } catch(err) {
+          ctx.throw(err.status, err.message);
+        }
+      }
+
+      return confirmPostcodeMatch(users_permissions_user, postCode)
     },
 };

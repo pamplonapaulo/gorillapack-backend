@@ -76,6 +76,16 @@
       "regex": "\\(\\d{2}\\) (\\d{5}|\\d{4})-(\\d{4})",
       "maxLength": 15,
       "minLength": 14
+    },
+    "addressNumber": {
+      "type": "string",
+      "maxLength": 15,
+      "regex": "\\D*\\s*\\d*"
+    },
+    "addressComplement": {
+      "type": "string",
+      "regex": "\\D*\\s*\\d*",
+      "maxLength": 15
     }
   }
 }
