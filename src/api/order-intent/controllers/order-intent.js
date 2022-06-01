@@ -41,10 +41,10 @@ module.exports = {
       const saveOrderIntent = async () => {
         try {
           const order = await strapi.service('api::order.order').create({data})
+          console.log(order.id)
           return order.id
         } catch(err) {
-          ctx.throw(err.status, err.message);
-          //throw new Error(err.message, { cause: err });
+          ctx.throw(err.status, err.message)
         }
       }
 
@@ -87,7 +87,7 @@ module.exports = {
           dayOfMonth = dispatches[0]
         }
 
-        for (let i=1; i<=orderMath.subscription.Multiplier; i++) {
+        for (let i=1; i<=orderMath.subscription.multiplier; i++) {
 
           expectedDispatchDays.push({
             isDispatched: false,
@@ -98,12 +98,12 @@ module.exports = {
 
           // Check if arrival would be on Sunday, then fix it to Monday'
           if (arrival.getDay() === 0) {
-            arrival = new Date(year, month, dayOfMonth + data.deliveries.expectedTravelingDays + 1);
+            arrival = new Date(year, month, dayOfMonth + data.deliveries.expectedTravelingDays + 1)
           }
 
           // Check if arrival would be on Saturday, then fix it to Monday
           if (arrival.getDay() === 6) {
-            arrival = new Date(year, month, dayOfMonth + data.deliveries.expectedTravelingDays + 2);
+            arrival = new Date(year, month, dayOfMonth + data.deliveries.expectedTravelingDays + 2)
           }
 
           const dateStr = arrival.getFullYear() + '-' + (arrival.getMonth()+1) + '-' + arrival.getDate()
@@ -142,7 +142,7 @@ module.exports = {
         });
 
         data.expectedPayments.monthsMultiplier = subscription.Multiplier
-        orderMath.subscription.Multiplier = subscription.Multiplier
+        orderMath.subscription.multiplier = subscription.Multiplier
         orderMath.subscription.percentualDiscount = subscription.Discount
         orderMath.subscription.absoluteDiscount = subscription.Discount * orderMath.snacksTotal
         data.expectedPayments.absoluteDiscountApplied = orderMath.subscription.absoluteDiscount
@@ -244,15 +244,15 @@ module.exports = {
         try {
           const activeOrder = await strapi.query('api::order.order').findOne({
             where: { users_permissions_user, deactivated: false, isConfirmed: true },
-          });
+          })
 
           if (activeOrder === null) {
             return handlePackType(snack, pack)
           } else {
-            ctx.throw(409, 'Duplication Conflit');
+            ctx.throw(409, 'Duplication Conflit')
           }
         } catch(err) {
-          ctx.throw(err.status, err.message);
+          ctx.throw(err.status, err.message)
         }
       }
 
@@ -263,22 +263,21 @@ module.exports = {
       }
 
       const confirmPostcodeMatch = async (users_permissions_user, postCode) => {
-        console.log('CEP entrando pelo input: ', postCode)
         try {
           const user = await strapi.query('plugin::users-permissions.user').findOne({
             where: { id: users_permissions_user }
           });
 
-          console.log('CEP salvo no database: ', user.postCode)
+          const postCodeNoDash = user.postCode.slice(0, 5) + user.postCode.slice(6, 10);
 
-          if (postCode === user.postCode) {
+          if (postCode === postCodeNoDash) {
             data.address.nome = user.username
-            getAddressExtraFieldsIfAvailable(user.addressNumber, user.addressComplement)
+            return getAddressExtraFieldsIfAvailable(user.addressNumber, user.addressComplement)
           } else {
-            ctx.throw(409, 'PostCode Conflit');
+            ctx.throw(409, 'PostCode Conflit')
           }
         } catch(err) {
-          ctx.throw(err.status, err.message);
+          ctx.throw(err.status, err.message)
         }
       }
 
