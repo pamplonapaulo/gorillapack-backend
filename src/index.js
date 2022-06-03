@@ -8,6 +8,7 @@ module.exports = {
    * This gives you an opportunity to extend code.
    */
    register({ strapi }) {
+    const { toEntityResponseCollection } = strapi.plugin("graphql").service("format").returnTypes;
     const extensionService = strapi.plugin("graphql").service("extension");
 
     extensionService.use(({ nexus }) => ({
@@ -19,6 +20,28 @@ module.exports = {
             t.string("addressNumber");
             t.string("phone");
             t.string("postCode");
+            t.field("order", {
+              type: "OrderRelationResponseCollection",
+
+              resolve: async (root, args, ctx) => {
+                const order = await strapi.query('api::order.order').findOne({
+                  where: { user: root.id }
+                });
+
+                console.log(order)
+
+                // return toEntityResponseCollection([{ id: order.id }], {
+                //   args,
+                //   resourceUID: "api::user.me",
+                // });
+
+                return toEntityResponseCollection([{ id: order.id }], {
+                  args,
+                  resourceUID: "api::user.me",
+                });
+
+              },
+            });
           },
         }),
       ],

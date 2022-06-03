@@ -14,7 +14,7 @@ module.exports = {
       const { users_permissions_user, period, snack, pack, postCode } = ctx.request.body
 
       let data = {
-        users_permissions_user,
+        user: users_permissions_user,
         Title: 'Customizado',
         pack,
         snack,
@@ -243,7 +243,7 @@ module.exports = {
       const preventAnotherActiveOrder = async (users_permissions_user) => {
         try {
           const activeOrder = await strapi.query('api::order.order').findOne({
-            where: { users_permissions_user, deactivated: false, isConfirmed: true },
+            where: { user: users_permissions_user, deactivated: false, isConfirmed: true },
           })
 
           if (activeOrder === null) {

@@ -17,11 +17,6 @@
       "relation": "oneToOne",
       "target": "api::period.period"
     },
-    "users_permissions_user": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "plugin::users-permissions.user"
-    },
     "snack": {
       "type": "component",
       "repeatable": true,
@@ -76,6 +71,12 @@
         "customer",
         "timeOut"
       ]
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "order"
     }
   }
 }
