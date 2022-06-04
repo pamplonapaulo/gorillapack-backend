@@ -25,15 +25,22 @@ module.exports = {
 
               resolve: async (root, args, ctx) => {
                 const order = await strapi.query('api::order.order').findOne({
-                  where: { user: root.id }
+                  where: { user: root.id },
+                  populate: { category: true }
                 });
 
-                console.log(order)
+                const test = await strapi.entityService.findOne('api::order.order', order.id, {
+                  fields: ['Title', 'deactivated', 'isConfirmed', 'createdAt', 'updatedAt', 'deactivationAuthor'],
+                  populate: ['snack', 'pack', 'address', 'deliveries', 'period', 'user', 'coupon', 'expectedPayments', 'expectedDispatchDays'],
+                });
 
-                // return toEntityResponseCollection([{ id: order.id }], {
-                //   args,
-                //   resourceUID: "api::user.me",
-                // });
+                // populate: {
+                //   order: {
+                //     deliveries: true
+                //   }
+                // }
+
+                console.log(test)
 
                 return toEntityResponseCollection([{ id: order.id }], {
                   args,
