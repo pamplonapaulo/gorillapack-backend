@@ -26,7 +26,7 @@ module.exports = {
               resolve: async (root, args, ctx) => {
 
                 const order = await strapi.query('api::order.order').findOne({
-                  where: { user: root.id },
+                  where: { user: root.id, isConfirmed: true, deactivated: false  },
                   fields: [
                     'Title',
                     'deactivated',
@@ -52,7 +52,14 @@ module.exports = {
 
                 return toEntityResponseCollection([{
                   id: order.id,
+                  Title: order.Title,
+                  isConfirmed: order.isConfirmed,
+                  deactivated: order.deactivated,
+                  deactivationAuthor: order.deactivationAuthor,
                   createdAt: order.createdAt,
+                  address: order.address,
+                  expectedPayments: order.expectedPayments,
+                  period: order.period,
                   snack: order.snack
                 }], {
                   args,
