@@ -9,6 +9,8 @@ module.exports = {
    */
    register({ strapi }) {
     const { toEntityResponseCollection } = strapi.plugin("graphql").service("format").returnTypes;
+    const { getContentTypeArgs } = strapi.plugin("graphql").service("builders").utils;
+
     const extensionService = strapi.plugin("graphql").service("extension");
 
     extensionService.use(({ nexus }) => ({
@@ -22,11 +24,17 @@ module.exports = {
             t.string("postCode");
             t.field("order", {
               type: "OrderRelationResponseCollection",
-
-              resolve: async (root, args, ctx) => {
+              args: getContentTypeArgs(
+                strapi.contentTypes["api::order.order"]
+              ),
+              resolve: async (root, args) => {
 
                 const order = await strapi.query('api::order.order').findOne({
-                  where: { user: root.id, isConfirmed: true, deactivated: false  },
+                  where: {
+                    user: root.id,
+                    isConfirmed: args.filters.isConfirmed.eq,
+                    deactivated: args.filters.deactivated.eq
+                  },
                   fields: [
                     'Title',
                     'deactivated',
@@ -62,7 +70,6 @@ module.exports = {
                   period: order.period,
                   snack: order.snack
                 }], {
-                  args,
                   resourceUID: "api::user.me",
                 });
 
