@@ -1,17 +1,19 @@
 'use strict';
 
-const axios = require('axios')
-
-const { getDeliveryFee } = require('../../delivery/controllers/delivery')
-
 /**
  *  order-intent controller
  */
+
+const axios = require('axios')
+
+const { getDeliveryFee } = require('../../delivery/controllers/delivery')
 
 module.exports = {
   create: async (ctx) => {
 
       const { users_permissions_user, period, snack, pack, postCode } = ctx.request.body
+
+      console.log(ctx.request.body)
 
       let data = {
         user: users_permissions_user,
