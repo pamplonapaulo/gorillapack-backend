@@ -4,47 +4,88 @@
  *  cancellation controller
  */
 
- var jwt = require('jsonwebtoken')
+var jwt = require('jsonwebtoken')
 
 module.exports = {
   cancel: async (ctx) => {
 
-    const token = ctx.request.headers.authorization.split(" ")[1]
-    const userId = jwt.decode(token).id
-
-    console.log(userId)
+    const token = ctx.request.headers.authorization.split(' ')[1]
+    const userID = jwt.decode(token).id
     const { type } = ctx.request.body
 
-    console.log(type)
-    console.log(ctx.request.body)
-
-    const deleteOrder = async () => {
+    const validateUser = async (userID, type) => {
       try {
-        const entry = await strapi.entityService.delete('api::order.order', entityId)
-        return entry
-        //return order.id
+        const user = await strapi.query('plugin::users-permissions.user').findOne({
+          where: {
+            id: userID,
+            blocked: false,
+            confirmed: true
+          }
+        });
+
+        if (type === 'cancelUser') return cancelUser(userID)
+        if (type === 'cancelOrder') return getOrderID(userID)
       } catch(err) {
+        console.log('erro find user')
         ctx.throw(err.status, err.message)
       }
     }
 
-    const deleteCustomer = async () => {
+    const getOrderID = async (userID) => {
       try {
-        const entry = await strapi.service('api::users-permissions.user').delete(entityId, params)
-        return entry
+        const activeOrder = await strapi.query('api::order.order').findOne({
+          where: {
+            user: userID,
+            deactivated: false,
+            isConfirmed: true
+          },
+        })
+        console.log('active order')
+        console.log(activeOrder)
+        return cancelOrder(activeOrder.id)
       } catch(err) {
+        console.log('erro find order')
         ctx.throw(err.status, err.message)
       }
     }
 
-    // if (type === 'deleteUser') return deleteCustomer()
-    // if (type === 'deleteOrder') return deleteOrder()
-    // if (type === 'test') {
-    //   //console.log('type: ', type)
+    const cancelOrder = async (orderID) => {
+      try {
+        const cancelled = await strapi.entityService.update('api::order.order', orderID, {
+          data: {
+            deactivated: true,
+            deactivationAuthor: 'customer',
+            isConfirmed: false
+          },
+        });
+        console.log('cancelled order')
+        console.log(cancelled)
+        return cancelled
+      } catch(err) {
+        console.log('erro cancel order')
+        ctx.throw(err.status, err.message)
+      }
+    }
 
-    //   return 100
-    // }
+    const cancelUser = async (userID) => {
+      try {
+        const cancelled = await strapi.query('plugin::users-permissions.user').update({
+          where: { id: userID },
+          data: {
+            blocked: true,
+            confirmed: false
+          },
+        });
 
-    return 200
+        console.log('cancelled user')
+        console.log(cancelled)
+        return cancelled
+      } catch(err) {
+        console.log('erro cancel order')
+        ctx.throw(err.status, err.message)
+      }
+    }
+
+    return validateUser(userID, type)
   },
 };
