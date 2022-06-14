@@ -26,7 +26,6 @@ module.exports = {
         if (type === 'cancelUser') return cancelUser(userID)
         if (type === 'cancelOrder') return getOrderID(userID)
       } catch(err) {
-        console.log('erro find user')
         ctx.throw(err.status, err.message)
       }
     }
@@ -40,11 +39,8 @@ module.exports = {
             isConfirmed: true
           },
         })
-        console.log('active order')
-        console.log(activeOrder)
         return cancelOrder(activeOrder.id)
       } catch(err) {
-        console.log('erro find order')
         ctx.throw(err.status, err.message)
       }
     }
@@ -58,8 +54,6 @@ module.exports = {
             isConfirmed: false
           },
         });
-        console.log('cancelled order')
-        console.log(cancelled)
         return cancelled
       } catch(err) {
         console.log('erro cancel order')
@@ -76,12 +70,8 @@ module.exports = {
             confirmed: false
           },
         });
-
-        console.log('cancelled user')
-        console.log(cancelled)
         return cancelled
       } catch(err) {
-        console.log('erro cancel order')
         ctx.throw(err.status, err.message)
       }
     }

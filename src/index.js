@@ -28,7 +28,6 @@ module.exports = {
                 strapi.contentTypes["api::order.order"]
               ),
               resolve: async (root, args) => {
-
                 const order = await strapi.query('api::order.order').findOne({
                   where: {
                     user: root.id,
