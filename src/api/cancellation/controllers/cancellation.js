@@ -23,6 +23,7 @@ module.exports = {
           }
         });
 
+        if (type === 'updateUser') return updateUser(userID)
         if (type === 'cancelUser') return cancelUser(userID)
         if (type === 'cancelOrder') return getOrderID(userID)
       } catch(err) {
@@ -71,6 +72,20 @@ module.exports = {
           },
         });
         return cancelled
+      } catch(err) {
+        ctx.throw(err.status, err.message)
+      }
+    }
+
+    const updateUser = async (userID) => {
+      const { data } = ctx.request.body
+
+      try {
+        const updated = await strapi.query('plugin::users-permissions.user').update({
+          where: { id: userID },
+          data,
+        });
+        return updated
       } catch(err) {
         ctx.throw(err.status, err.message)
       }
