@@ -87,9 +87,9 @@
       "regex": "\\D*\\s*\\d*",
       "maxLength": 15
     },
-    "order": {
+    "orders": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::order.order",
       "mappedBy": "user"
     }

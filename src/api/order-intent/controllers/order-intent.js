@@ -13,8 +13,6 @@ module.exports = {
 
       const { users_permissions_user, period, snack, pack, postCode } = ctx.request.body
 
-      console.log(ctx.request.body)
-
       let data = {
         user: users_permissions_user,
         Title: 'Customizado',
@@ -237,34 +235,19 @@ module.exports = {
         )
       }
 
-      const handlePackType = (snacks, pack) => {
-        if (!snacks && pack) return getSnacksFromPack(pack)
-        if (!pack && snacks) return getSubtotalFromSnacks(snacks)
-      }
-
-      const preventAnotherActiveOrder = async (users_permissions_user) => {
-        try {
-          const activeOrder = await strapi.query('api::order.order').findOne({
-            where: { user: users_permissions_user, deactivated: false, isConfirmed: true },
-          })
-
-          if (activeOrder === null) {
-            return handlePackType(snack, pack)
-          } else {
-            ctx.throw(409, 'Duplication Conflit')
-          }
-        } catch(err) {
-          ctx.throw(err.status, err.message)
-        }
+      const handlePackType = () => {
+        if (!snack && pack) return getSnacksFromPack()
+        if (!pack && snack) return getSubtotalFromSnacks(snack)
       }
 
       const getAddressExtraFieldsIfAvailable = (numero, complemento) => {
         if (numero) data.address.numero = numero
         if (complemento) data.address.complemento = complemento
-        return preventAnotherActiveOrder(users_permissions_user)
+        return handlePackType()
+        //return preventAnotherActiveOrder(users_permissions_user)
       }
 
-      const confirmPostcodeMatch = async (users_permissions_user, postCode) => {
+      const confirmPostcodeMatch = async () => {
         try {
           const user = await strapi.query('plugin::users-permissions.user').findOne({
             where: { id: users_permissions_user }
@@ -283,6 +266,22 @@ module.exports = {
         }
       }
 
-      return confirmPostcodeMatch(users_permissions_user, postCode)
+      const preventAnotherActiveOrder = async () => {
+        try {
+          const activeOrder = await strapi.query('api::order.order').findOne({
+            where: { user: users_permissions_user, deactivated: false, isConfirmed: true },
+          })
+
+          if (activeOrder === null) {
+            return confirmPostcodeMatch()
+          } else {
+            ctx.throw(409, 'Duplication Conflit')
+          }
+        } catch(err) {
+          ctx.throw(err.status, err.message)
+        }
+      }
+
+      return preventAnotherActiveOrder()
     },
 };

@@ -57,21 +57,26 @@ module.exports = {
                   ],
                 });
 
-                return toEntityResponseCollection([{
-                  id: order.id,
-                  Title: order.Title,
-                  isConfirmed: order.isConfirmed,
-                  deactivated: order.deactivated,
-                  deactivationAuthor: order.deactivationAuthor,
-                  createdAt: order.createdAt,
-                  address: order.address,
-                  expectedPayments: order.expectedPayments,
-                  period: order.period,
-                  snack: order.snack
-                }], {
-                  resourceUID: "api::user.me",
-                });
-
+                if (!order) {
+                  return toEntityResponseCollection(null, {
+                    resourceUID: "api::user.me",
+                  });
+                } else {
+                  return toEntityResponseCollection([{
+                    id: order.id,
+                    Title: order.Title,
+                    isConfirmed: order.isConfirmed,
+                    deactivated: order.deactivated,
+                    deactivationAuthor: order.deactivationAuthor,
+                    createdAt: order.createdAt,
+                    address: order.address,
+                    expectedPayments: order.expectedPayments,
+                    period: order.period,
+                    snack: order.snack
+                  }], {
+                    resourceUID: "api::user.me",
+                  });
+                }
               },
             });
           },
