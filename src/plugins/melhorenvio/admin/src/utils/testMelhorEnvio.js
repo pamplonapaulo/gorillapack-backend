@@ -14,7 +14,6 @@ export const sortByLowestPrice = (quotations) => {
 }
 
 export const fetchProducts = async () => {
-  console.log('process.env.GRAPHQL_HOST', process.env.GRAPHQL_HOST)
 
   const query = `query products {
     products {

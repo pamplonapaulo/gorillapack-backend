@@ -41,7 +41,6 @@ module.exports = {
       const saveOrderIntent = async () => {
         try {
           const order = await strapi.service('api::order.order').create({data})
-          console.log(order.id)
           return order.id
         } catch(err) {
           ctx.throw(err.status, err.message)
