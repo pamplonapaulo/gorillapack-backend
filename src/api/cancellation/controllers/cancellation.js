@@ -13,56 +13,59 @@ module.exports = {
     const userID = jwt.decode(token).id
     const { type } = ctx.request.body
 
-    const validateUser = async (userID, type) => {
-      try {
-        const user = await strapi.query('plugin::users-permissions.user').findOne({
-          where: {
-            id: userID,
-            blocked: false,
-            confirmed: true
-          }
-        });
-
-        if (type === 'updateUser') return updateUser(userID)
-        if (type === 'cancelUser') return cancelUser(userID)
-        if (type === 'cancelOrder') return getOrderID(userID)
-      } catch(err) {
-        ctx.throw(err.status, err.message)
-      }
-    }
-
-    const getOrderID = async (userID) => {
-      try {
-        const activeOrder = await strapi.query('api::order.order').findOne({
-          where: {
-            user: userID,
-            deactivated: false,
-            isConfirmed: true
-          },
-        })
-        return cancelOrder(activeOrder.id)
-      } catch(err) {
-        ctx.throw(err.status, err.message)
-      }
-    }
-
     const cancelOrder = async (orderID) => {
       try {
         const cancelled = await strapi.entityService.update('api::order.order', orderID, {
           data: {
             deactivated: true,
             deactivationAuthor: 'customer',
-            isConfirmed: false
           },
         });
         return cancelled
       } catch(err) {
-        console.log('erro cancel order')
         ctx.throw(err.status, err.message)
       }
     }
 
-    const cancelUser = async (userID) => {
+    const updateOrder = async (orderID, numero, complemento, address) => {
+      try {
+        const updatedOrder = await strapi.entityService.update('api::order.order', orderID, {
+          data: {
+            address: {
+              ...address,
+              numero,
+              complemento
+            }
+          },
+        });
+        return updatedOrder
+      } catch(err) {
+        ctx.throw(err.status, err.message)
+      }
+    }
+
+    const getOrderID = async () => {
+      const isConfirmed = type === 'updateUserAndOrder' ? false : true
+
+      try {
+        const orders = await strapi.query('api::order.order').findMany({
+          where: {
+            user: userID,
+            deactivated: false,
+            isConfirmed
+          },
+          populate: [
+            'address'
+          ]
+        })
+        const order = orders.pop()
+        return isConfirmed ? cancelOrder(order.id) : updateUser(true, order.id, order.address)
+      } catch(err) {
+        ctx.throw(err.status, 'Order not found')
+      }
+    }
+
+    const cancelUser = async () => {
       try {
         const cancelled = await strapi.query('plugin::users-permissions.user').update({
           where: { id: userID },
@@ -77,20 +80,40 @@ module.exports = {
       }
     }
 
-    const updateUser = async (userID) => {
+    const updateUser = async (updateOrderToo = false, orderID, address) => {
       const { data } = ctx.request.body
 
       try {
-        const updated = await strapi.query('plugin::users-permissions.user').update({
+        const updatedUser = await strapi.query('plugin::users-permissions.user').update({
           where: { id: userID },
           data,
         });
-        return updated
+
+        return updateOrderToo ? updateOrder(orderID, data.addressNumber, data.addressComplement, address) : updatedUser
       } catch(err) {
         ctx.throw(err.status, err.message)
       }
     }
 
-    return validateUser(userID, type)
+    const validateUser = async () => {
+      try {
+        const user = await strapi.query('plugin::users-permissions.user').findOne({
+          where: {
+            id: userID,
+            blocked: false,
+            confirmed: true
+          }
+        });
+
+        if (user && type === 'updateUser') return updateUser()
+        if (user && type === 'cancelUser') return cancelUser()
+        if (user && type === 'cancelOrder' || type === 'updateUserAndOrder') return getOrderID()
+
+      } catch(err) {
+        ctx.throw(err.status, err.message)
+      }
+    }
+
+    return validateUser()
   },
 };
