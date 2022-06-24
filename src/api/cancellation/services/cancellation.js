@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * order-intent service.
+ * cancellation service.
  */
 
 const { createCoreService } = require('@strapi/strapi').factories;

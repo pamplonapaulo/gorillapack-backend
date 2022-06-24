@@ -19,9 +19,10 @@
     "expiration": {
       "type": "date"
     },
-    "quantity": {
+    "notTaken": {
       "type": "integer",
-      "default": 0
+      "default": 0,
+      "min": 0
     },
     "type": {
       "type": "enumeration",
@@ -39,6 +40,16 @@
       "type": "decimal",
       "default": 0,
       "required": true
+    },
+    "takenBeforePayment": {
+      "type": "integer",
+      "min": 0,
+      "default": 0
+    },
+    "takenAfterPayment": {
+      "type": "integer",
+      "min": 0,
+      "default": 0
     }
   }
 }

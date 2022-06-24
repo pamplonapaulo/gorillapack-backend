@@ -27,6 +27,12 @@
     "contentCostBeforeDiscount": {
       "type": "decimal",
       "required": false
+    },
+    "finalValueInCentavosWithCoupon": {
+      "type": "integer"
+    },
+    "absoluteCouponDiscountAppliedInCentavos": {
+      "type": "integer"
     }
   }
 }

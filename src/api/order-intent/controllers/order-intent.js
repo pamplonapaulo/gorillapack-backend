@@ -126,6 +126,7 @@ module.exports = {
         }
       }
 
+      // must refactor this. somehow it's result's typeof is string
       const convertToCents = (num) => parseInt(num.toFixed(2).toString().replace(/(\d{1,})(\.)(\d{1,2})/g, '$1' + '$3'))
 
       const getExpectedPayments = () => {
