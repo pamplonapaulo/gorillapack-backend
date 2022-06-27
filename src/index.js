@@ -22,6 +22,7 @@ module.exports = {
             t.string("addressNumber");
             t.string("phone");
             t.string("postCode");
+            t.string("updatedAt");
             t.field("order", {
               type: "OrderRelationResponseCollection",
               args: getContentTypeArgs(
