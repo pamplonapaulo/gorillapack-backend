@@ -5,12 +5,11 @@
  */
 
   const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-  // const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET
+  const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET
   const unparsed = require('koa-body/unparsed.js')
 
 module.exports = {
   event: async (ctx) => {
-    const endpointSecret = 'whsec_f27d6d223c8ffaa89aef735ed391840be8d6bad436187a39a5b7db4af8cc0506';
 
     let event = ctx.request.body[unparsed];
     // Only verify the event if you have an endpoint secret defined.
@@ -51,8 +50,6 @@ module.exports = {
         console.log(`Unhandled event type ${event.type}.`);
     }
 
-    // Return a 200 response to acknowledge receipt of the event
-    //response.send();
-    return 'acknowledge receipt'
+    return ctx.send({status: 200});
   }
 };
