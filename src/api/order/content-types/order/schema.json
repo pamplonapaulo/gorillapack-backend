@@ -77,6 +77,20 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "orders"
+    },
+    "paymentIntent": {
+      "type": "string",
+      "required": true
+    },
+    "cardBrand": {
+      "type": "string",
+      "required": false
+    },
+    "cardLast4digits": {
+      "type": "string",
+      "required": false,
+      "maxLength": 4,
+      "minLength": 4
     }
   }
 }

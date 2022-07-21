@@ -6,12 +6,17 @@
 
 const axios = require('axios')
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+
 const { getDeliveryFee } = require('../../delivery/controllers/delivery')
 
 module.exports = {
   create: async (ctx) => {
 
       const { users_permissions_user, period, snack, pack, postCode } = ctx.request.body
+
+      // console.log('ctx')
+      // console.log(ctx)
 
       let data = {
         user: users_permissions_user,
@@ -27,6 +32,9 @@ module.exports = {
           monthsMultiplier: 0,
           contentCostBeforeDiscount: null
         },
+        paymentIntent: '0',
+        cardBrand: '0',
+        cardLast4digits: '1234'
       }
 
       let orderMath = {
@@ -47,6 +55,30 @@ module.exports = {
         }
       }
 
+      const getStripeIntent = async () => {
+        try {
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: data.expectedPayments.finalValueInCentavos,
+            currency: 'brl',
+            automatic_payment_methods: {enabled: true},
+            metadata: {
+              pack: data.Title
+            }
+          })
+          data.paymentIntent = paymentIntent.client_secret
+
+          // console.log('paymentIntent')
+          // console.log(paymentIntent)
+
+          // console.log('paymentIntent.client_secret')
+          // console.log(paymentIntent.client_secret)
+
+          return saveOrderIntent()
+        } catch(err) {
+          ctx.throw(err.raw.statusCode, err.raw.message)
+        }
+      }
+
       const renameSnackProp = (snks) => {
         const products = []
         snks.map((s) => {
@@ -56,7 +88,7 @@ module.exports = {
           })
         })
         data.snack = products
-        return saveOrderIntent(data)
+        return getStripeIntent()
       }
 
       const handleCalendar = async () => {

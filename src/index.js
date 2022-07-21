@@ -41,7 +41,8 @@ module.exports = {
                     'isConfirmed',
                     'createdAt',
                     'updatedAt',
-                    'deactivationAuthor'
+                    'deactivationAuthor',
+                    'paymentIntent'
                   ],
                   populate: [
                     'snack',
@@ -75,7 +76,8 @@ module.exports = {
                     address: order.address,
                     expectedPayments: order.expectedPayments,
                     period: order.period,
-                    snack: order.snack
+                    snack: order.snack,
+                    paymentIntent: order.paymentIntent
                   }], {
                     resourceUID: "api::user.me",
                   });
