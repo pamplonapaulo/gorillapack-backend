@@ -15,8 +15,7 @@ module.exports = {
 
       const { users_permissions_user, period, snack, pack, postCode } = ctx.request.body
 
-      // console.log('ctx')
-      // console.log(ctx)
+      let customer
 
       let data = {
         user: users_permissions_user,
@@ -34,7 +33,8 @@ module.exports = {
         },
         paymentIntent: '0',
         cardBrand: '0',
-        cardLast4digits: '1234'
+        cardLast4digits: '1234',
+        line_items: []
       }
 
       let orderMath = {
@@ -55,6 +55,7 @@ module.exports = {
         }
       }
 
+      /*
       const getStripeIntent = async () => {
         try {
           const paymentIntent = await stripe.paymentIntents.create({
@@ -67,15 +68,85 @@ module.exports = {
           })
           data.paymentIntent = paymentIntent.client_secret
 
-          // console.log('paymentIntent')
-          // console.log(paymentIntent)
-
-          // console.log('paymentIntent.client_secret')
-          // console.log(paymentIntent.client_secret)
-
           return saveOrderIntent()
         } catch(err) {
           ctx.throw(err.raw.statusCode, err.raw.message)
+        }
+      }
+      */
+
+      const createStripeSchedule = async () => {
+        try {
+          const subscriptionSchedule = await stripe.subscriptionSchedules.create({
+            customer,
+            start_date: 1659408846,
+            end_behavior: 'release',
+            phases: [
+              {
+                items: [
+                  {
+                    price: 'price_1LPc4oFypReVTFFM1BPmzmgf',
+                    quantity: 5,
+                  },
+                ],
+                iterations: data.period.times,
+                automatic_tax: {
+                  enabled: true
+                }
+              },
+            ],
+          });
+
+          console.log(subscriptionSchedule)
+          return subscriptionSchedule
+        } catch(err) {
+          console.log(err)
+          ctx.throw(err.raw.statusCode, err.raw.message)
+        }
+      }
+
+      const createStripeCheckoutSession = async () => {
+        try {
+          const session = await stripe.checkout.sessions.create({
+            customer,
+            mode: "subscription",
+            currency: 'brl',
+            payment_method_types: ['card'],
+            shipping_options: [
+              {
+                shipping_rate_data: {
+                  type: 'fixed_amount',
+                  fixed_amount: {
+                    amount: data.deliveries.fee,
+                    currency: 'brl',
+                  },
+                  display_name: data.deliveries.company,
+                  delivery_estimate: {
+                    minimum: {
+                      unit: 'business_day',
+                      value: data.deliveries.delivery_range.min,
+                    },
+                    maximum: {
+                      unit: 'business_day',
+                      value: data.deliveries.delivery_range.max,
+                    },
+                  }
+                }
+              },
+            ],
+            line_items: data.line_items,
+            success_url: `${process.env.FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.FRONTEND_URL}/canceled.html`,
+            // automatic_tax: { enabled: true }
+          });
+
+          console.log(session)
+
+          ctx.redirect(session.url)
+          ctx.status = 303
+          //return res.redirect(303, session.url);
+        } catch (e) {
+          ctx.throw(e.status, e.message)
         }
       }
 
@@ -88,7 +159,10 @@ module.exports = {
           })
         })
         data.snack = products
-        return getStripeIntent()
+
+        return createStripeCheckoutSession() // needs Stripe account totally set
+        //return createStripeSchedule() // never tested
+        //return getStripeIntent() // single payment was working at first tests
       }
 
       const handleCalendar = async () => {
@@ -162,23 +236,11 @@ module.exports = {
       const convertToCents = (num) => parseInt(num.toFixed(2).toString().replace(/(\d{1,})(\.)(\d{1,2})/g, '$1' + '$3'))
 
       const getExpectedPayments = () => {
-        data.expectedPayments.contentCostBeforeDiscount = orderMath.snacksTotal
-        data.expectedPayments.finalValueInCentavos = convertToCents((orderMath.snacksTotal - orderMath.subscription.absoluteDiscount) + data.deliveries.fee)
-        data.deliveries.fee = data.deliveries.fee.toString()
+        // data.expectedPayments.contentCostBeforeDiscount = orderMath.snacksTotal
+        // data.expectedPayments.finalValueInCentavos = convertToCents((orderMath.snacksTotal - orderMath.subscription.absoluteDiscount) + data.deliveries.fee)
+        data.expectedPayments.finalValueInCentavos = orderMath.snacksTotal + convertToCents(data.deliveries.fee)
+        data.deliveries.fee = parseInt(data.deliveries.fee.toString().replace('.',''))
         return handleCalendar()
-      }
-
-      const getSubscriptionDiscount = async () => {
-        const subscription = await strapi.query('api::period.period').findOne({
-          where: { id: period }
-        });
-
-        data.expectedPayments.monthsMultiplier = subscription.Multiplier
-        orderMath.subscription.multiplier = subscription.Multiplier
-        orderMath.subscription.percentualDiscount = subscription.Discount
-        orderMath.subscription.absoluteDiscount = subscription.Discount * orderMath.snacksTotal
-        data.expectedPayments.absoluteDiscountApplied = orderMath.subscription.absoluteDiscount
-        return getExpectedPayments()
       }
 
       const calculateDelivery = async (snacks) => {
@@ -190,6 +252,7 @@ module.exports = {
             }
           }
         })
+
         data.deliveries = { ...deliveryData.quotation }
         data.address = {
           ...deliveryData.address,
@@ -198,7 +261,7 @@ module.exports = {
           complemento: data.address.complemento
         }
 
-        return getSubscriptionDiscount()
+        return getExpectedPayments()
       }
 
       const getSubtotalFromSnacks = async (snacks, packDiscount = 0) => {
@@ -206,11 +269,18 @@ module.exports = {
           snacks.map(async (snack) => {
             const item = await strapi.query('api::product.product').findOne({
               where: { id: snack.id },
+              populate: [`prices.${data.period.name}`],
             });
-            orderMath.snacksTotal += (snack.Quantity * item.BaseValue)
+            const price = item.prices[data.period.name].centavos
+            const priceId = item.prices[data.period.name].priceId
+
+            orderMath.snacksTotal += (snack.Quantity * price)
+            data.line_items.push({
+              price: priceId,
+              quantity: snack.Quantity,
+            })
           })
         )
-
         orderMath.snacksTotal = orderMath.snacksTotal - (packDiscount * orderMath.snacksTotal)
         return calculateDelivery(snacks)
       }
@@ -272,10 +342,30 @@ module.exports = {
         if (!pack && snack) return getSubtotalFromSnacks(snack)
       }
 
+      const getSubscriptionCycle = async () => {
+        const subscription = await strapi.query('api::period.period').findOne({
+          where: { id: period }
+        });
+
+        data.period = {
+          name: subscription.Type,
+          times: subscription.Multiplier
+        }
+
+        // data.expectedPayments.monthsMultiplier = subscription.Multiplier
+        // orderMath.subscription.multiplier = subscription.Multiplier
+        // orderMath.subscription.percentualDiscount = subscription.Discount
+        // orderMath.subscription.absoluteDiscount = subscription.Discount * orderMath.snacksTotal
+        // data.expectedPayments.absoluteDiscountApplied = orderMath.subscription.absoluteDiscount
+        //return getExpectedPayments()
+        return handlePackType()
+      }
+
       const getAddressExtraFieldsIfAvailable = (numero, complemento) => {
         if (numero) data.address.numero = numero
         if (complemento) data.address.complemento = complemento
-        return handlePackType()
+        //return handlePackType()
+        return getSubscriptionCycle()
         //return preventAnotherActiveOrder(users_permissions_user)
       }
 
@@ -288,6 +378,7 @@ module.exports = {
           const postCodeNoDash = user.postCode.slice(0, 5) + user.postCode.slice(6, 10);
 
           if (postCode === postCodeNoDash) {
+            customer = user.stripe_customer
             data.address.nome = user.username
             return getAddressExtraFieldsIfAvailable(user.addressNumber, user.addressComplement)
           } else {

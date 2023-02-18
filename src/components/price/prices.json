@@ -1,0 +1,39 @@
+{
+  "collectionName": "components_product_prices",
+  "info": {
+    "displayName": "prices",
+    "icon": "money-bill-alt",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "mensal": {
+      "displayName": "mensal",
+      "type": "component",
+      "repeatable": false,
+      "component": "prices.mensal",
+      "required": true
+    },
+    "trimestral": {
+      "displayName": "trimestral",
+      "type": "component",
+      "repeatable": false,
+      "component": "prices.trimestral",
+      "required": true
+    },
+    "semestral": {
+      "displayName": "semestral",
+      "type": "component",
+      "repeatable": false,
+      "component": "prices.semestral",
+      "required": true
+    },
+    "anual": {
+      "displayName": "anual",
+      "type": "component",
+      "repeatable": false,
+      "component": "prices.anual",
+      "required": true
+    }
+  }
+}

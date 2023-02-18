@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_product_trimestrals",
+  "info": {
+    "displayName": "trimestral",
+    "icon": "arrows-alt",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "centavos": {
+      "type": "biginteger",
+      "required": true
+    },
+    "priceId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    }
+  }
+}

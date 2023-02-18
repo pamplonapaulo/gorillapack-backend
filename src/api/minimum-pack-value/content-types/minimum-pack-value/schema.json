@@ -13,9 +13,8 @@
   "pluginOptions": {},
   "attributes": {
     "MinimumValue": {
-      "type": "integer",
-      "required": true,
-      "default": 100
+      "type": "biginteger",
+      "required": true
     }
   }
 }

@@ -39,17 +39,6 @@
         }
       }
     },
-    "BaseValue": {
-      "type": "integer",
-      "required": true,
-      "default": 99,
-      "min": 1,
-      "pluginOptions": {
-        "i18n": {
-          "localized": true
-        }
-      }
-    },
     "Weight": {
       "type": "integer",
       "required": true,
@@ -100,6 +89,17 @@
           "localized": true
         }
       }
+    },
+    "prices": {
+      "type": "component",
+      "repeatable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "component": "price.prices",
+      "required": true
     }
   }
 }

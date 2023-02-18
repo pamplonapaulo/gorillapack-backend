@@ -33,6 +33,7 @@ module.exports = {
       }
 
       const sendResponse = (arr) => {
+
         if (arr.length === 0) {
           return { error: 'Selecione menos produtos.' }
         } else {
@@ -40,6 +41,7 @@ module.exports = {
             quotation: {
               fee: noFee ? 0 : Number(arr[0].custom_price),
               expectedTravelingDays: gorillaLog ? 0 : arr[0].delivery_time,
+              delivery_range: arr[0].delivery_range,
               company: gorillaLog ? 'Gorilla Pack' : arr[0].company.name,
               packingDetails: gorillaLog ? undefined : arr[0].packages
             },

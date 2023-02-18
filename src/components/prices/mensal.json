@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_product_mensals",
+  "info": {
+    "displayName": "mensal",
+    "icon": "asterisk",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "centavos": {
+      "type": "biginteger",
+      "required": true
+    },
+    "priceId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    }
+  }
+}

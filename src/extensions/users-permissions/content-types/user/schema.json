@@ -92,6 +92,11 @@
       "relation": "oneToMany",
       "target": "api::order.order",
       "mappedBy": "user"
+    },
+    "stripe_customer": {
+      "type": "string",
+      "required": true,
+      "unique": true
     }
   }
 }
